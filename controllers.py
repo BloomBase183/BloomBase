@@ -28,6 +28,7 @@ Warning: Fixtures MUST be declared with @action.uses({fixtures}) else your app w
 from py4web import action, request, abort, redirect, URL, Field
 from py4web.utils.form import Form, FormStyleBulma
 from py4web.utils.url_signer import URLSigner
+<<<<<<< HEAD
 
 from .models import get_user_email
 from . common import db, session, T, cache, auth, signed_url
@@ -39,3 +40,16 @@ url_signer = URLSigner(session)
 def index():
         ### You have to modify the code here as well.
         return dict()
+=======
+from .models import get_user_email
+from .common import db, session, T, cache, auth, signed_url
+
+url_signer = URLSigner(session)
+
+
+@action('index')
+@action.uses('index.html', db)
+# @action.uses('index.html', db, auth.user)
+def index():
+    return dict()
+>>>>>>> b78aaf6da7af0757c9d9388702713fa2e804bb1f
