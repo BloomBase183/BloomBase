@@ -20,8 +20,6 @@ def get_time():
 #
 ## always commit your models to avoid problems later
 
-<<<<<<< HEAD
-=======
 
 ##CHANGE THIS ####################################
 db.define_table(
@@ -35,4 +33,3 @@ db.define_table(
 db.observations.user_email.readable = db.observations.user_email.writable = False
 db.interests.user_email.readable = db.interests.user_email.writable = False
 db.commit()
->>>>>>> b78aaf6da7af0757c9d9388702713fa2e804bb1f

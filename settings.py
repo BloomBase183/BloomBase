@@ -47,11 +47,7 @@ SMTP_TLS = False
 
 # session settings
 SESSION_TYPE = "database"
-<<<<<<< HEAD
-SESSION_SECRET_KEY = "<session-secret-key>" # replace this with a uuid
-=======
 SESSION_SECRET_KEY = "9e20d777-7aad-4624-a570-46136484932d" # replace this with a uuid
->>>>>>> b78aaf6da7af0757c9d9388702713fa2e804bb1f
 MEMCACHE_CLIENTS = ["127.0.0.1:11211"]
 REDIS_SERVER = "localhost:6379"
 
