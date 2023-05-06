@@ -1,7 +1,3 @@
-// Note: This example requires that you consent to location sharing when
-// prompted by your browser. If you see the error "The Geolocation service
-// failed.", it means you probably did not give permission for the browser to
-// locate you.
 let map, infoWindow;
 
 function initMap() {
@@ -31,7 +27,6 @@ function initMap() {
         }
       );
     } else {
-      // Browser doesn't support Geolocation
       handleLocationError(false, infoWindow, map.getCenter());
     }
   };
