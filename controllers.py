@@ -36,6 +36,11 @@ url_signer = URLSigner(session)
 
 @action('index')
 @action.uses('index.html', db)
-# @action.uses('index.html', db, auth.user)
 def index():
+
     return dict()
+
+@action('admin')
+@action.uses('admin.html', db)
+def index():
+    redirect("admin.html")
