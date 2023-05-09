@@ -1,13 +1,3 @@
-/*
-import searchBar from "./searchBar.js";
-
-const app = new Vue({
-  el: "#app",
-  components: {
-    searchBar,
-  },
-});
-*/
 let app = {};
 
 let init = (app) => {
