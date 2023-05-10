@@ -29,7 +29,17 @@ db.define_table(
 db.define_table(
     'interests',
     Field('user_email', default=get_user_email),
+    Field('interest_category', requires=IS_IN_SET(['Kingdom', 'Class', 'Family', 'Species'])),
+    Field('interest_name'),
+    Field('interest_weight', 'integer', requires=IS_INT_IN_RANGE(1,10)),
+)
+db.define_table(
+    'users',
+    Field('user_email', default=get_user_email),
+    Field('first_name', 'string', default = None, requires=IS_NOT_EMPTY()),
+    Field('last_name', 'string', default = None, requires=IS_NOT_EMPTY()),
 )
 db.observations.user_email.readable = db.observations.user_email.writable = False
 db.interests.user_email.readable = db.interests.user_email.writable = False
+db.users.readable = db.users.writable = False
 db.commit()

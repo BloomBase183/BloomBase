@@ -1,0 +1,27 @@
+[[extend 'layout.html']]
+
+<section class="section">
+    <div class="title">
+        Profile
+        <a class="button is-warning" href="[[=URL('edit_profile', signer=url_signer)]]">Edit</a>
+    </div>
+    <!-- Complete -->
+    [[if user:]]
+    <table class="table">
+        <thead><tr><th>First Name</th></tr></thead>
+        <tbody><tr><td>[[=user["first_name"] ]]</td></tr></tbody>
+    </table>
+    <table class="table">
+        <thead><tr><th>Last Name</th></tr></thead>
+        <tbody><tr><td>[[=user["last_name"] ]]</td></tr></tbody>
+    </table>
+    <table class="table">
+        <thead><tr><th>Interests <a class="button is-success" href="[[=URL('add_interest', signer=url_signer)]]">Add</a></th></tr></thead>
+        [[for interest in interests:]]
+        <tbody><tr><td>[[=interest["interest_weight'"] ]]</td></tr></tbody>
+        [[pass]]
+    </table>
+    [[else:]]
+    <div>Profile Not Found</div>
+    [[pass]]
+</section>
