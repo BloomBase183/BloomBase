@@ -58,6 +58,16 @@ def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
     drop_old_observations()
+    redirect("admin")
+    return dict()
+
+
+@action('drop_observations')
+@action.uses('admin.html', db)
+def drop_observations():
+    drop_old_observations()
+    redirect('admin')
+    return dict()
 
 
 def insert_csv_to_database(filename):
@@ -79,9 +89,18 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Database Updated!")
-    redirect("admin.html")
 
 
 def drop_old_observations():
-    db.executesql("DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")
-    print("Cleared old observations")
+    # Count the number of rows that match the condition
+    count = db.executesql("SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")[0][0]
+
+    # Ask for confirmation before deleting
+    answer = input(f"Are you sure you want to delete {count} rows? (y/n)")
+
+    # If the user confirms, delete the rows
+    if answer.lower() == "y":
+        db.executesql("DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")
+        print(f"{count} rows deleted.")
+    else:
+        print("Operation cancelled.")
