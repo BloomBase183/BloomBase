@@ -22,8 +22,6 @@ db.define_table(
     Field('image_url'),
     Field('latitude', 'double'),
     Field('longitude', 'double'),
-    Field('positional_accuracy', 'integer'),
-    Field('public_positional_accuracy', 'integer'),
     Field('species_guess'),
     Field('scientific_name'),
     Field('common_name'),

@@ -57,6 +57,7 @@ def admin():
 def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
+    drop_old_observations()
 
 
 def insert_csv_to_database(filename):
@@ -71,8 +72,6 @@ def insert_csv_to_database(filename):
                 image_url=row['image_url'],
                 latitude=row['latitude'],
                 longitude=row['longitude'],
-                positional_accuracy=row['positional_accuracy'],
-                public_positional_accuracy=row['public_positional_accuracy'],
                 species_guess=row['species_guess'],
                 scientific_name=row['scientific_name'],
                 common_name=row['common_name'],
@@ -81,3 +80,8 @@ def insert_csv_to_database(filename):
             )
     print("Database Updated!")
     redirect("admin.html")
+
+
+def drop_old_observations():
+    db.executesql("DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")
+    print("Cleared old observations")
