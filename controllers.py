@@ -59,8 +59,8 @@ def upload_csv():
     insert_csv_to_database(my_csv_file)
 
 
-def insert_csv_to_database(filename):  #filename = "observations.csv"   ### observations is in my root directory
-    print(f"Parsing file: {filename}")  # Debug statement
+def insert_csv_to_database(filename):
+    # print(f"Parsing file: {filename}")  # Debug statement
     with open(filename, encoding="utf8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
