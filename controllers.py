@@ -48,8 +48,8 @@ def index():
 @action('admin')
 @action.uses('admin.html', db)
 def admin():
-
-    return dict()
+    first_ten = db(db.observations_na).select(limitby=(0, 10))
+    return dict(first_ten=first_ten)
 
 
 @action('upload_csv')
@@ -57,7 +57,7 @@ def admin():
 def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
-    drop_old_observations()
+    # drop_old_observations()
     redirect("admin")
     return dict()
 
