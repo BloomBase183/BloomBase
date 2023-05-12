@@ -74,18 +74,6 @@ def get_observations():
     response = requests.get(url, params=query_params)
     observations = response.json()['results']
     for observation in observations:
-        # print({  #for debugging
-        #     'observed_on': observation['observed_on'],
-        #     'url': observation['uri'],
-        #     'image_url': observation['photos'][0]['url'],
-        #     'latitude': observation['geojson']['coordinates'][1],
-        #     'longitude': observation['geojson']['coordinates'][0],
-        #     'species_guess': observation['species_guess'],
-        #     'scientific_name': observation['taxon']['name'],
-        #     'common_name': observation['taxon']['preferred_common_name'],
-        #     'iconic_taxon_name': observation['taxon']['iconic_taxon_name'],
-        #     'taxon_id': observation['taxon']['id']
-        # })
         try:
             db.observations_na.insert(
                 observed_on=observation['observed_on'],
@@ -103,6 +91,18 @@ def get_observations():
             print("Succesful API Request")
         except:
             print("Error in API Request")  # Maybe print to a log?
+        # print({  #for debugging
+        #     'observed_on': observation['observed_on'],
+        #     'url': observation['uri'],
+        #     'image_url': observation['photos'][0]['url'],
+        #     'latitude': observation['geojson']['coordinates'][1],
+        #     'longitude': observation['geojson']['coordinates'][0],
+        #     'species_guess': observation['species_guess'],
+        #     'scientific_name': observation['taxon']['name'],
+        #     'common_name': observation['taxon']['preferred_common_name'],
+        #     'iconic_taxon_name': observation['taxon']['iconic_taxon_name'],
+        #     'taxon_id': observation['taxon']['id']
+        # })
     redirect('admin')
 
 
@@ -111,15 +111,29 @@ def get_observations():
 def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
-    # drop_old_observations()
     redirect('admin')
 
 
 @action('drop_observations')
 @action.uses('admin.html', db)
 def drop_observations():
-    drop_old_observations()
+    drop_old_observations(10)
     redirect('admin')
+
+
+def drop_old_observations(days):
+    # Count the number of rows that match the condition
+    count = db.executesql(f"SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")[0][
+        0]
+    # Debug
+    # answer = input(f"Are you sure you want to delete {count} rows? (y/n)")
+    #
+    #
+    # if answer.lower() == "y":
+    #     db.executesql("DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")
+    #     print(f"{count} rows deleted.")
+    # else:
+    #     print("Operation cancelled.")
 
 
 # @action('update_database')
@@ -150,17 +164,4 @@ def insert_csv_to_database(filename):
     print("Succesfully Added CSV to database")
 
 
-def drop_old_observations():
-    # Count the number of rows that match the condition
-    count = db.executesql("SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")[0][
-        0]
 
-    # Ask for confirmation before deleting
-    answer = input(f"Are you sure you want to delete {count} rows? (y/n)")
-
-    # If the user confirms, delete the rows
-    if answer.lower() == "y":
-        db.executesql("DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-10 days')")
-        print(f"{count} rows deleted.")
-    else:
-        print("Operation cancelled.")
