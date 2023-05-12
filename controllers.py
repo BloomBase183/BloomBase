@@ -56,41 +56,47 @@ def admin():
 @action('get_observations')
 @action.uses('admin.html', db)
 def get_observations():
-    url = 'https://api.inaturalist.org/v1/observations'
-    query_params = {
-        'has[]': 'photos',
-        'quality_grade': 'research',
-        'identifications': 'most_agree',
-        'captive': 'False',
-        'geoprivacy': 'open',
-        'taxon_geoprivacy': 'open',
-        'iconic_taxa[]': 'Plantae',
-        'place_id': '97394',
-        'per_page': '200',
-        'date': f"{datetime.date.today().strftime('%Y-%m-%d')}",
-        'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
-                  'taxon.preferred_common_name,taxon.iconic_taxon_name',
-    }  # 'date': f"{datetime.date.today().strftime('%Y-%m-%d')}"
-    response = requests.get(url, params=query_params)
-    observations = response.json()['results']
-    for observation in observations:
-        try:
-            db.observations_na.insert(
-                observed_on=observation['observed_on'],
-                url=observation['uri'],
-                image_url=observation['photos'][0]['url'] if observation['photos'] else None,
-                latitude=observation['geojson']['coordinates'][1] if observation['geojson'] else None,
-                longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
-                species_guess=observation['species_guess'],
-                scientific_name=observation['taxon']['name'],
-                common_name=observation['taxon']['preferred_common_name'] if 'preferred_common_name' in observation[
-                    'taxon'] else None,
-                iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
-                taxon_id=observation['taxon']['id']
-            )
-            print("Succesful API Request")
-        except:
+    today = datetime.date.today().strftime('%Y-%m-%d')
+    if not db(db.observations_na.observed_on == today).select().first():
+        url = 'https://api.inaturalist.org/v1/observations'
+        query_params = {
+            'has[]': 'photos',
+            'quality_grade': 'research',
+            'identifications': 'most_agree',
+            'captive': 'False',
+            'geoprivacy': 'open',
+            'taxon_geoprivacy': 'open',
+            'iconic_taxa[]': 'Plantae',
+            'place_id': '97394',
+            'per_page': '200',
+            'date': f"{datetime.date.today().strftime('%Y-%m-%d')}",
+            'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
+                      'taxon.preferred_common_name,taxon.iconic_taxon_name',
+        }  # 'date': f"{datetime.date.today().strftime('%Y-%m-%d')}"
+        response = requests.get(url, params=query_params)
+        observations = response.json()['results']
+        error = False
+        for observation in observations:
+            try:
+                db.observations_na.insert(
+                    observed_on=observation['observed_on'],
+                    url=observation['uri'],
+                    image_url=observation['photos'][0]['url'] if observation['photos'] else None,
+                    latitude=observation['geojson']['coordinates'][1] if observation['geojson'] else None,
+                    longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
+                    species_guess=observation['species_guess'],
+                    scientific_name=observation['taxon']['name'],
+                    common_name=observation['taxon']['preferred_common_name'] if 'preferred_common_name' in observation[
+                        'taxon'] else None,
+                    iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
+                    taxon_id=observation['taxon']['id']
+                )
+            except:
+                error = True
+        if error:
             print("Error in API Request")  # Maybe print to a log?
+        else:
+            print("Succesful API Request")
         # print({  #for debugging
         #     'observed_on': observation['observed_on'],
         #     'url': observation['uri'],
@@ -103,6 +109,8 @@ def get_observations():
         #     'iconic_taxon_name': observation['taxon']['iconic_taxon_name'],
         #     'taxon_id': observation['taxon']['id']
         # })
+    else:
+        print("Already added those observations")
     redirect('admin')
 
 
