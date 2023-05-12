@@ -45,21 +45,36 @@ def index():
 @action('profile')
 @action.uses('profile.html', db, auth.user, url_signer.verify(), session)
 def profile():
-    interests = db(db.interests.user_email == get_user_email()).select()
+    user = db(db.users.user_email == get_user_email()).select()
+    #interests = db(db.interests.user_email == get_user_email()).select()
     return dict(
-    interests = interests,
+    current_user = user[0],
+    #interests = interests,
+    interests = [],
     url_signer = url_signer
     )
 
+
+@action('create_profile', method=["GET", "POST"])
+@action.uses('create_profile.html', db, auth.user, url_signer.verify(), session)
+def create_profile():
+    form = Form([Field('first_name'), Field('last_name')], csrf_session=session, formstyle=FormStyleBulma)
+    if form.accepted:
+        db.users.insert(first_name=form.vars["first_name"], last_name=form.vars["last_name"])
+        redirect(URL('index'))
+    return dict(form=form)
+
+
 @action('edit_profile', method=["GET", "POST"])
 @action.uses('edit_profile.html', db, auth.user, url_signer.verify(), session)
-def edit_contact(contact_id=None):
-    #ensure an id was given
-    assert contact_id is not None
-    profile = db.users[contact_id]
-    if contact is None or contact.created_by != auth.current_user.get('id'):
-        #contact not found, or invalid user accessing
+def edit_profile():
+    #grab the user (Temporary, for use until we switch to email auth)
+    user = db(db.users.user_email == get_user_email()).select()
+    if user is None:
+        #user not found
         redirect(URL('index'))
     else:
-        #contact exists
-        return dict(rows = db(db.phone.contact_id == contact_id).select(), url_signer = url_signer, contact = contact)
+        form = Form(db.users, record=user[0], deletable=False, csrf_session=session, formstyle=FormStyleBulma)
+        if form.accepted:
+            redirect(URL('index'))
+        return dict(form=form)
