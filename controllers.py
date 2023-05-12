@@ -129,11 +129,20 @@ def drop_observations():
     redirect('admin')
 
 
+#This is the function that would be called everyday
+@action('update_database')
+def update_database():
+    get_observations()  #Grab todays observations
+    drop_old_observations(10) #Remove 10 day old observations
+    print("Database Updated")
+
+
 def drop_old_observations(days):
-    # Count the number of rows that match the condition
-    count = db.executesql(f"SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")[0][
-        0]
+    db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
     # Debug
+    # Count the number of rows that match the condition
+    # count = db.executesql(f"SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")[0][
+    #     0]
     # answer = input(f"Are you sure you want to delete {count} rows? (y/n)")
     #
     #
@@ -143,13 +152,6 @@ def drop_old_observations(days):
     # else:
     #     print("Operation cancelled.")
 
-
-# @action('update_database')
-# def update_database():
-#     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
-#     insert_csv_to_database(my_csv_file)
-#     drop_old_observations()
-#     print("Database Updated")
 
 def insert_csv_to_database(filename):
     # print(f"Parsing file: {filename}")  # Debug statement
