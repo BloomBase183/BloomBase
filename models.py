@@ -17,7 +17,7 @@ def get_time():
 
 db.define_table(
     'observations_na',
-    Field('observed_on', 'datetime'),
+    Field('observed_on', 'date'),
     Field('url'),
     Field('image_url'),
     Field('latitude', 'double'),
@@ -26,7 +26,7 @@ db.define_table(
     Field('scientific_name'),
     Field('common_name'),
     Field('iconic_taxon_name'),
-    Field('taxon_id', 'integer'),
+    Field('taxon_id', 'integer')
 )
 db.define_table(
     'interests',

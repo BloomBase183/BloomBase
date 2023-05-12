@@ -33,6 +33,7 @@ from .models import get_user_email
 from .common import db, session, T, cache, auth, signed_url
 from .settings import APP_FOLDER
 import os
+import datetime
 
 url_signer = URLSigner(session)
 
@@ -40,7 +41,9 @@ url_signer = URLSigner(session)
 @action('index')
 @action.uses('index.html', db)
 def index():
-
+    # Section is for the searchBar component
+    userinput = request.params.userinput
+    results = db(db.observations_na.species_guess.contains(userinput, all=True)).select(limitby=(0,10))
     return dict()
 
 
@@ -48,7 +51,7 @@ def index():
 @action('admin')
 @action.uses('admin.html', db)
 def admin():
-
+    
     return dict()
 
 

@@ -1,55 +1,45 @@
 [[extend 'layout.html']]
 
-<style>
-    [v-cloak] {
-         display: none;
-    }
-</style>
-
-  
-
-<div class="section" id="test">
+<div class="section">
     BloomBase!!
-    <a href="[[=URL('admin')]]" class="button is-warning">ADMIN</a>
 
     <!--Section for Search Bar and corresponding button-->
-    <div class="columns">
-        <div class="column is-two-thirds">
-            <input class="input is-rounded is-medium bulma-search" type="text" v-model="userinput" placeholder="Species">
-        </div>
-        <div class="column is-one-fifth">
-            <button class="button is-rounded is-medium" v-on:click="search"><i class="fa fa-search" aria-hidden="true"></i></button>
-        </div>
-    </div>
+      <form method="GET">
+        <div class="columns">
+          <div class="column is-7">
+            <input class="input is-rounded is-medium bulma-search" type="text" name="userinput" placeholder="Species">
+          </div>
+          <div class="column is-3">
+            <button type="submit" class="button is-rounded is-medium"><i class="fa fa-search" aria-hidden="true"></i></button>
+          </div>
+        </div>          
+      </form>
     
     <!--Section for displaying the obersvations-->
-    <div class="columns is-multiline" id="test" v-cloak>
-        <div class="column is-two-thirds" v-for="result in results">
-          <div class="box" >
+    <div class="columns is-multiline">
+      [[for result in results:]]
+        <div class="column is-8">
+          <div class="box">
             <div class="media">
               <div class="media-left">
                 <figure class="image">
-                  <img :src="result.taxon.default_photo.medium_url" :alt="result.taxon.name" style="height: 64px; width: 64px;"/>
+                  <img src="[[=result.image_url]]" alt="[[=result.species_guess]]" style="height: 64px; width: 64px;"/>
                 </figure>
               </div>
               <div class="media-content">
-                <p class="title is-5">{{ result.taxon.preferred_common_name }}</p>
-                <p class="title is-6"><i>{{ result.taxon.name }}</i></p>
+                <p class="title is-5">[[=result.common_name]]</p>
+                <p class="title is-6"><i>[[=result.scientific_name]]</i></p>
               </div>
             </div>
           </div>
         </div>
+      [[pass]]
     </div>
-
+    
 </div>
 
   
 
 
 
-[[block page_scripts]]
-<!-- Loads the index-specific js for Vue -->
-<script src="js/index.js"></script>
-<script src="/axios.min.js"></script>
 
-[[end]]
