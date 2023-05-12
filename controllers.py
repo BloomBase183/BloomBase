@@ -42,9 +42,12 @@ url_signer = URLSigner(session)
 @action.uses('index.html', db)
 def index():
     # Section is for the searchBar component
-    userinput = request.params.userinput
-    results = db(db.observations_na.species_guess.contains(userinput, all=True)).select(limitby=(0,10))
-    return dict()
+    userinput = request.params.get('userinput')
+    if userinput == "" or userinput is None:
+        results = db(db.observations_na).select(limitby=(0,10))
+    else:
+        results = db(db.observations_na.species_guess.contains(userinput, all=True)).select(limitby=(0,10))
+    return dict(results=results)
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
