@@ -66,7 +66,7 @@ def get_observations():
         'taxon_geoprivacy': 'open',
         'iconic_taxa[]': 'Plantae',
         'place_id': '97394',
-        'per_page': '1',
+        'per_page': '200',
         'date': f"{datetime.date.today().strftime('%Y-%m-%d')}",
         'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
                   'taxon.preferred_common_name,taxon.iconic_taxon_name',
