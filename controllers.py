@@ -24,7 +24,6 @@ The path follows the bottlepy syntax.
 session, db, T, auth, and tempates are examples of Fixtures.
 Warning: Fixtures MUST be declared with @action.uses({fixtures}) else your app will result in undefined behavior
 """
-import csv
 
 from py4web import action, request, abort, redirect, URL, Field
 from py4web.utils.form import Form, FormStyleBulma
@@ -33,10 +32,10 @@ from .models import get_user_email
 from .common import db, session, T, cache, auth, signed_url
 from .settings import APP_FOLDER
 import os
+import csv
+import time
 import datetime
-
 import requests
-
 
 url_signer = URLSigner(session)
 
@@ -47,14 +46,13 @@ def index():
     # Section is for the searchBar component
     user_input = request.params.get('user_input')
     if user_input == "" or user_input is None:
-        results = db(db.observations_na).select(limitby=(0,10))
+        results = db(db.observations_na).select(limitby=(0, 10))
     else:
         results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                (db.observations_na.common_name.contains(user_input, all=True)) |
-                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
+                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                     (db.observations_na.common_name.contains(user_input, all=True)) |
+                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
     return dict(results=results)
-
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
@@ -68,8 +66,11 @@ def admin():
 @action('get_observations')
 @action.uses('admin.html', db)
 def get_observations():
-    today = datetime.date.today().strftime('%Y-%m-%d')
-    if not db(db.observations_na.observed_on == today).select().first():
+    page = 1
+    error = False
+    observation_count = 0
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    if not db(db.observations_na.observed_on == yesterday).select().first():
         url = 'https://api.inaturalist.org/v1/observations'
         query_params = {
             'has[]': 'photos',
@@ -81,48 +82,55 @@ def get_observations():
             'iconic_taxa[]': 'Plantae',
             'place_id': '97394',
             'per_page': '200',
-            'date': f"{datetime.date.today().strftime('%Y-%m-%d')}",
+            'date': yesterday,
             'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
                       'taxon.preferred_common_name,taxon.iconic_taxon_name',
-        }  # 'date': f"{datetime.date.today().strftime('%Y-%m-%d')}"
-        response = requests.get(url, params=query_params)
-        observations = response.json()['results']
-        error = False
-        for observation in observations:
-            try:
-                db.observations_na.insert(
-                    observed_on=observation['observed_on'],
-                    url=observation['uri'],
-                    image_url=observation['photos'][0]['url'] if observation['photos'] else None,
-                    latitude=observation['geojson']['coordinates'][1] if observation['geojson'] else None,
-                    longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
-                    species_guess=observation['species_guess'],
-                    scientific_name=observation['taxon']['name'],
-                    common_name=observation['taxon']['preferred_common_name'] if 'preferred_common_name' in observation[
-                        'taxon'] else None,
-                    iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
-                    taxon_id=observation['taxon']['id']
-                )
-            except:
-                error = True
+        }
+        while True:
+            response = requests.get(url, params=query_params)
+            response_data = response.json()
+            if 'results' in response_data:
+                observations = response_data['results']
+                for i, observation in enumerate(observations):
+                    try:
+                        db.observations_na.insert(
+                            observed_on=observation['observed_on'],
+                            url=observation['uri'],
+                            image_url=observation['photos'][0]['url'] if observation['photos'] else None,
+                            latitude=observation['geojson']['coordinates'][1] if observation['geojson'] else None,
+                            longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
+                            species_guess=observation['species_guess'],
+                            scientific_name=observation['taxon']['name'],
+                            common_name=observation['taxon']['preferred_common_name'] if 'preferred_common_name' in
+                                                                                         observation[
+                                                                                             'taxon'] else None,
+                            iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
+                            taxon_id=observation['taxon']['id']
+                        )
+                        observation_count += 1
+                    except:
+                        error = True
+
+                    # add delay of 1 second between API requests
+                    if (i + 1) % 60 == 0 and i + 1 < len(observations):
+                        time.sleep(1)
+
+                page += 1
+                if response_data['total_results'] > page * 200:
+                    query_params['page'] = page
+                else:
+                    break
+            else:
+                break
+
         if error:
-            print("Error in API Request")  # Maybe print to a log?
+            print("Error in API Request")
         else:
-            print("Succesful API Request")
-        # print({  #for debugging
-        #     'observed_on': observation['observed_on'],
-        #     'url': observation['uri'],
-        #     'image_url': observation['photos'][0]['url'],
-        #     'latitude': observation['geojson']['coordinates'][1],
-        #     'longitude': observation['geojson']['coordinates'][0],
-        #     'species_guess': observation['species_guess'],
-        #     'scientific_name': observation['taxon']['name'],
-        #     'common_name': observation['taxon']['preferred_common_name'],
-        #     'iconic_taxon_name': observation['taxon']['iconic_taxon_name'],
-        #     'taxon_id': observation['taxon']['id']
-        # })
+            print("Successful API Request")
+            with open('observation_count.txt', 'w') as f:
+                f.write(f"{observation_count} observations added - {datetime.datetime.now()}")
     else:
-        print("Already added those observations")
+        f.write(f"Already added those observations - {datetime.datetime.now()}")
     redirect('admin')
 
 
@@ -141,11 +149,11 @@ def drop_observations():
     redirect('admin')
 
 
-#This is the function that would be called everyday
+# This is the function that would be called everyday
 @action('update_database')
 def update_database():
-    get_observations()  #Grab todays observations
-    drop_old_observations(10) #Remove 10 day old observations
+    get_observations()  # Grab todays observations
+    drop_old_observations(10)  # Remove 10 day old observations
     print("Database Updated")
 
 
@@ -184,6 +192,3 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Succesfully Added CSV to database")
-
-
-
