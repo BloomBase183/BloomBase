@@ -4,41 +4,5 @@
     <h1 class="title has-text-centered full-width">BloomBase Admin Page</h1>
     <a href="[[=URL('upload_csv')]]" class="button is-danger" :disabled="isUploading" @click.prevent="handleUploadButtonClick">UPLOAD OBSERVATIONS</a>
     <a href="[[=URL('drop_observations')]]" class="button is-warning" :disabled="isDropping" @click.prevent="handleDropButtonClick">DROP OLD OBSERVATIONS</a>
+    <a href="[[=URL('get_observations')]]" class="button is-link" :disabled="isDropping" @click.prevent="handleDropButtonClick">CALL API</a>
 </div>
-
-<script>
-export default {
-  data() {
-    return {
-      isUploading: false,
-      isDropping: false
-    };
-  },
-  methods: {
-    handleUploadButtonClick() {
-      this.isUploading = true;
-      fetch("[[=URL('upload_csv')]]")
-        .then(response => {
-          this.isUploading = false;
-          location.reload();
-        })
-        .catch(error => {
-          console.error(error);
-          this.isUploading = false;
-        });
-    },
-    handleDropButtonClick() {
-      this.isDropping = true;
-      fetch("[[=URL('drop_observations')]]")
-        .then(response => {
-          this.isDropping = false;
-          location.reload();
-        })
-        .catch(error => {
-          console.error(error);
-          this.isDropping = false;
-        });
-    }
-  }
-};
-</script>
