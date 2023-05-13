@@ -17,13 +17,11 @@ def get_time():
 
 db.define_table(
     'observations_na',
-    Field('observed_on', 'datetime'),
+    Field('observed_on', 'date'),
     Field('url'),
     Field('image_url'),
     Field('latitude', 'double'),
     Field('longitude', 'double'),
-    Field('positional_accuracy', 'integer'),
-    Field('public_positional_accuracy', 'integer'),
     Field('species_guess'),
     Field('scientific_name'),
     Field('common_name'),
