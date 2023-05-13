@@ -42,7 +42,8 @@ url_signer = URLSigner(session)
 @action('index')
 @action.uses('index.html', db)
 def index():
-    return dict()
+    print("indexing")
+    return dict(observations_url = URL('grab_observations'),)
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
@@ -136,6 +137,13 @@ def update_database():
     drop_old_observations(10) #Remove 10 day old observations
     print("Database Updated")
 
+@action('grab_observations')
+@action.uses(db)
+def grab_observations():
+    print("grabbing url got")
+    return dict(
+        observations=db(db.observations_na).select().as_list()
+    )
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")

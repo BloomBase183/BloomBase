@@ -1,26 +1,37 @@
 [[extend 'layout.html']]
 <!DOCTYPE html>
-<div class="section">
-    BloomBase!!
 
-</div>
-[[block page_scripts]]
+
 
 <html>
-  <head>
     <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <div class="column">
     <title>Simple Map</title>
-    <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdL5jteil0_--FgaFgb5vqiSxjua6km4&callback=initMap">
-</script>
 
-    <script type="module" src="js/index.js"></script>
-  </head>
-  <body>
-    <div id="map"></div>
+      <div class="section" id="map"></div>
+    </div>
+    <div class="block">
+    <div class="section" id="vue-target">
+      <div class="has-text-weight-bold is-size-3">TESTINGG</div>
+        <div v-for="obs in observations" class="box">
+          <div class="column is-narrow">
+            <div class="has-text-weight-bold is-size-3">textboxl</div>
+          </div>
+        </div>
 
-    <!-- prettier-ignore -->
- 
-  </body>
+        
+      
+    </div>
+  </div>
+  [[block page_scripts]]
+  <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+    ({key: "AIzaSyCXdL5jteil0_--FgaFgb5vqiSxjua6km4", v: "beta"});</script>
+
+  
+  <script>
+    let observations_url = "[[=XML(observations_url)]]"
+  </script>
+  <script type="module" src="js/index.js"></script>
+
 </html>
 [[end]]
