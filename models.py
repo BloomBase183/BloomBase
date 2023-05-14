@@ -26,20 +26,26 @@ db.define_table(
     'notes',
     #TODO
 )
-db.define_table(
-    'interests',
-    #Field('creator', 'reference users'),
-    Field('interest_category', requires=IS_IN_SET(['Kingdom', 'Class', 'Family', 'Species'])),
-    Field('interest_name'),
-    Field('interest_weight', 'integer', requires=IS_INT_IN_RANGE(1,10)),
-)
+
 db.define_table(
     'users',
     Field('user_email', default=get_user_email),
     Field('first_name', 'string', default = None, requires=IS_NOT_EMPTY()),
     Field('last_name', 'string', default = None, requires=IS_NOT_EMPTY()),
 )
-#db.interests.creator.readable = db.interests.creator.writable = False
+
+db.define_table(
+    'interests',
+    Field('user_id'),
+    #gives the option for more filtering types later
+    Field('interest_category', requires=IS_IN_SET(['Species'])),
+    #should be a search bar of species we have available, currently takes whatever
+    Field('interest_name'),
+    #the weight impacts which interests are highest priority
+    Field('interest_weight', 'integer', requires=IS_INT_IN_RANGE(1,11)),
+)
+
+db.interests.user_id.readable = db.interests.user_id.writable = False
 db.users.user_email.readable = db.users.user_email.writable = False
 db.users.id.readable = db.users.id.writable = False
 db.commit()
