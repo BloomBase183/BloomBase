@@ -142,7 +142,7 @@ def update_database():
 def grab_observations():
     
     a = db(db.observations_na).select().as_list()
-    a = a[0:200]
+    # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
