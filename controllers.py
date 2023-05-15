@@ -30,11 +30,13 @@ from py4web.utils.form import Form, FormStyleBulma
 from py4web.utils.url_signer import URLSigner
 from .models import get_user_email
 from .common import db, session, T, cache, auth, signed_url, Field
-url_signer = URLSigner(session)
 
+from .email_auth import EmailAuth
+url_signer = URLSigner(session)
+#auth = EmailAuth(session, url_signer)
 
 @action('index')
-@action.uses('index.html', db, session, url_signer)
+@action.uses('index.html', db, session, url_signer, auth)
 # @action.uses('index.html', db, auth.user)
 def index():
     return dict(
@@ -42,7 +44,7 @@ def index():
     )
 
 @action('profile')
-@action.uses('profile.html', db, auth.user, url_signer.verify(), session)
+@action.uses('profile.html', db, auth.enforce(), url_signer.verify(), session)
 def profile():
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
@@ -57,7 +59,7 @@ def profile():
 
 
 @action('create_profile', method=["GET", "POST"])
-@action.uses('create_profile.html', db, auth.user, url_signer.verify(), session)
+@action.uses('create_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def create_profile():
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
@@ -72,7 +74,7 @@ def create_profile():
 
 
 @action('edit_profile', method=["GET", "POST"])
-@action.uses('edit_profile.html', db, auth.user, url_signer.verify(), session)
+@action.uses('edit_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def edit_profile():
     #grab the user (Temporary, for use until we switch to email auth)
     user = db(db.users.user_email == get_user_email()).select()
@@ -86,7 +88,7 @@ def edit_profile():
         return dict(form=form)
 
 @action('add_interest/<user_id:int>', method=["GET", "POST"])
-@action.uses('add_interest.html', db, auth.user, url_signer.verify(), session)
+@action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
 def add_interest(user_id = None):
     assert user_id is not None
     form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session, formstyle=FormStyleBulma)
@@ -101,7 +103,7 @@ def add_interest(user_id = None):
 #    return dict(form=form)
 
 @action('delete_interest/<user_id:int>')
-@action.uses(db, auth.user, url_signer.verify())
+@action.uses(db, auth.enforce(), url_signer.verify())
 def delete_contact(contact_id=None):
     assert contact_id is not None
     db(db.interests.id == contact_id).delete()

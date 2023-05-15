@@ -15,6 +15,7 @@ from py4web.utils.factories import ActionFactory
 from py4web.utils.form import FormStyleBulma
 from py4web.utils.url_signer import URLSigner
 from . import settings
+from .email_auth import EmailAuth
 
 # #######################################################
 # implement custom loggers form settings.LOGGERS
@@ -106,9 +107,9 @@ auth.param.registration_requires_confirmation = False
 auth.param.registration_requires_approval = False
 auth.param.allowed_actions = settings.ALLOWED_ACTIONS
 auth.param.login_expiration_time = 3600
-# FIXME: Readd for production.
-auth.param.password_complexity = {"entropy": 2}
-auth.param.block_previous_password_num = 3
+# # FIXME: Readd for production.
+# auth.param.password_complexity = {"entropy": 2}
+# auth.param.block_previous_password_num = 3
 auth.param.formstyle = FormStyleBulma
 auth.define_tables()
 
@@ -133,47 +134,47 @@ if auth.db:
 # #######################################################
 # Enable optional auth plugin
 # #######################################################
-if settings.USE_PAM:
-    from py4web.utils.auth_plugins.pam_plugin import PamPlugin
-
-    auth.register_plugin(PamPlugin())
-
-if settings.USE_LDAP:
-    from py4web.utils.auth_plugins.ldap_plugin import LDAPPlugin
-
-    auth.register_plugin(LDAPPlugin(db=db, groups=groups, **settings.LDAP_SETTINGS))
-
-if settings.OAUTH2GOOGLE_CLIENT_ID:
-    from py4web.utils.auth_plugins.oauth2google import OAuth2Google  # TESTED
-
-    auth.register_plugin(
-        OAuth2Google(
-            client_id=settings.OAUTH2GOOGLE_CLIENT_ID,
-            client_secret=settings.OAUTH2GOOGLE_CLIENT_SECRET,
-            callback_url="auth/plugin/oauth2google/callback",
-        )
-    )
-if settings.OAUTH2FACEBOOK_CLIENT_ID:
-    from py4web.utils.auth_plugins.oauth2facebook import OAuth2Facebook  # UNTESTED
-
-    auth.register_plugin(
-        OAuth2Facebook(
-            client_id=settings.OAUTH2FACEBOOK_CLIENT_ID,
-            client_secret=settings.OAUTH2FACEBOOK_CLIENT_SECRET,
-            callback_url="auth/plugin/oauth2facebook/callback",
-        )
-    )
-
-if settings.OAUTH2OKTA_CLIENT_ID:
-    from py4web.utils.auth_plugins.oauth2okta import OAuth2Okta  # TESTED
-
-    auth.register_plugin(
-        OAuth2Okta(
-            client_id=settings.OAUTH2OKTA_CLIENT_ID,
-            client_secret=settings.OAUTH2OKTA_CLIENT_SECRET,
-            callback_url="auth/plugin/oauth2okta/callback",
-        )
-    )
+# if settings.USE_PAM:
+#     from py4web.utils.auth_plugins.pam_plugin import PamPlugin
+#
+#     auth.register_plugin(PamPlugin())
+#
+# if settings.USE_LDAP:
+#     from py4web.utils.auth_plugins.ldap_plugin import LDAPPlugin
+#
+#     auth.register_plugin(LDAPPlugin(db=db, groups=groups, **settings.LDAP_SETTINGS))
+#
+# if settings.OAUTH2GOOGLE_CLIENT_ID:
+#     from py4web.utils.auth_plugins.oauth2google import OAuth2Google  # TESTED
+#
+#     auth.register_plugin(
+#         OAuth2Google(
+#             client_id=settings.OAUTH2GOOGLE_CLIENT_ID,
+#             client_secret=settings.OAUTH2GOOGLE_CLIENT_SECRET,
+#             callback_url="auth/plugin/oauth2google/callback",
+#         )
+#     )
+# if settings.OAUTH2FACEBOOK_CLIENT_ID:
+#     from py4web.utils.auth_plugins.oauth2facebook import OAuth2Facebook  # UNTESTED
+#
+#     auth.register_plugin(
+#         OAuth2Facebook(
+#             client_id=settings.OAUTH2FACEBOOK_CLIENT_ID,
+#             client_secret=settings.OAUTH2FACEBOOK_CLIENT_SECRET,
+#             callback_url="auth/plugin/oauth2facebook/callback",
+#         )
+#     )
+#
+# if settings.OAUTH2OKTA_CLIENT_ID:
+#     from py4web.utils.auth_plugins.oauth2okta import OAuth2Okta  # TESTED
+#
+#     auth.register_plugin(
+#         OAuth2Okta(
+#             client_id=settings.OAUTH2OKTA_CLIENT_ID,
+#             client_secret=settings.OAUTH2OKTA_CLIENT_SECRET,
+#             callback_url="auth/plugin/oauth2okta/callback",
+#         )
+#     )
 
 # #######################################################
 # Define a convenience action to allow users to download
@@ -215,3 +216,4 @@ unauthenticated = ActionFactory(db, session, T, flash, auth)
 authenticated = ActionFactory(db, session, T, flash, auth.user)
 
 signed_url = URLSigner(session)
+auth = EmailAuth(session, signed_url)

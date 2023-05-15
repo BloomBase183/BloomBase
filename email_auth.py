@@ -1,109 +1,94 @@
-from py4web.core import Fixture
 from py4web import action, request, abort, redirect, URL
+from py4web.core import Fixture
 from py4web.utils.form import Form, FormStyleBulma
 from pydal import Field
 from pydal.validators import IS_EMAIL
 
-# Key to access email in the session
-EMAIL_KEY = "_user_email"
-LOGIN_PATH = "auth_by_email/login"
-CONFIRMATION_PATH = "auth_by_email/confirm"
-WAITING_PATH = "auth_by_email/waiting"
+#Code based off unit 8 video
 
-
-class TestEmailer(object):
-    """Dummy class for sending emails; all it does is prints the link."""
-
-    def send_email(self, email, link):
-        """Replace this with something that sends the link to the email."""
-        print("Please click here:", link)
-
-
-class AuthByEmail(Fixture):
-
-    def __init__(self, session, url_signer, emailer=None, default_path='index'):
-        """Store the session."""
+class EmailAuth(Fixture):
+    def __init__(self, session, url_signer, emailer=None):
         self.session = session
         self.url_signer = url_signer
-        self.emailer = emailer or TestEmailer()
+        self.emailer = emailer
         self.__prerequisites__ = [session]
-        self.default_path = default_path
-        # Register path to login
-        f = action.uses("auth_by_email_login.html", session)(self.login)
-        action(LOGIN_PATH, method=["GET", "POST"])(f)
-        # Register path to waiting
-        f = action.uses("auth_by_email_wait.html", session)(self.wait)
-        action(WAITING_PATH, method=["GET"])(f)
-        # Register path to confirmation
-        f = action.uses("auth_by_email_wait.html", session, url_signer.verify())(self.confirm)
-        action(CONFIRMATION_PATH + "/<email>", method=["GET"])(f)
+        f = action.uses("sign_in.html", session)(self.login)
+        action("sign_in", method=["GET", "POST"])(f)
+        f = action.uses("sign_in_wait.html", session)(self.wait)
+        action("sign_in_wait", method=["GET"])(f)
+        f = action.uses("sign_in_wait.html", session, url_signer.verify())(self.confirm)
+        action("sign_in_confirm" + "/<email>", method=["GET"])(f)
 
+
+    def enforce(self):
+        #requires a user to be logged in
+        return EmailAuthEnforcer(self)
+   
     @property
     def current_user(self):
-        """Current_user is None if the user is not logged in,
-        else it is a dictionary containing the email (and only the email)."""
-        if self.session.get(EMAIL_KEY):
-            return dict(email=self.session.get(EMAIL_KEY))
+        user_email = self.session.get("_user_email")
+        if user_email:
+            #the user is logged in currently
+            return dict(email = user_email)
         else:
             return None
 
-    def enforce(self):
-        """This returns a fixture that enforces log-in via email."""
-        return AuthByEmailEnforcer(self)
-
-    @property
-    def login_url(self):
-        return URL(LOGIN_PATH)
-
     def login(self):
-        """This is the controller that allows a user to login."""
-        if self.session.get(EMAIL_KEY):
-            redirect(URL(self.default_path))
-        # The user is not logged in.  I provide a form to log in.
-        form = Form([Field('email', requires=IS_EMAIL())],
-                    csrf_session=self.session, formstyle=FormStyleBulma)
-        if form.accepted:
-            # At this point, in reality, I want to send an email to the user asking to confirm the email
-            # by clicking on a link.  The link will cause the user to be logged in.
-            link = URL(CONFIRMATION_PATH, form.vars['email'], signer=self.url_signer)
-            self.emailer.send_email(form.vars['email'], link)
-            redirect(URL(WAITING_PATH))
-        return dict(form=form)
-
-    def wait(self):
-        """Controller for waiting page."""
-        return dict()
+        if self.session.get("_user_email"):
+            #redirects a user if they're already signed in
+            print(self.session.get("_user_email"))
+            redirect(URL("index"))
+        else:
+           form = Form([Field('email', requires=IS_EMAIL())], csrf_session=self.session, formstyle=FormStyleBulma)
+           if form.accepted:
+               link = URL("sign_in_confirm", form.vars['email'], signer=self.url_signer)
+               self.send_email(form.vars['email'], link)
+               redirect(URL("sign_in_wait"))
+               #redirect(URL(link))
+           return dict(form=form)
 
     def confirm(self, email=None):
-        """Controller for the confirmation page.  IF the link the valid, writes
-        that the user is now logged in into the session."""
         assert email is not None
-        self.session[EMAIL_KEY] = email
-        redirect(URL(self.default_path))
+        self.session["_user_email"] = email
+        redirect(URL("index"))
 
+    def wait(self):
+        return dict()
+
+    def send_email(self, email, link):
+        """Replace this with something that sends the link to the email."""
+        print("Login Link Here:", "http://127.0.0.1:8000"+ link)
+    '''def send_email(self, email, link):
+    #email sending format based off 2fa documentation
+        try:
+            auth.sender.send(
+                to=[email],
+                subject=f"Bloombase Verification Email",
+                body=f"Your verification link is {link}",
+                sender="Verification@Bloombase.com",
+            )
+        except Exception as e:
+            print(e)
+        return link'''
     def transform(self, output, shared_data):
-        """Injects user in the template, so that I can refer to it
-        from layout.html"""
         template_context = shared_data.get("template_context")
         template_context["user"] = self.current_user
         return output
 
 
-class AuthByEmailEnforcer(Fixture):
-
+class EmailAuthEnforcer(Fixture):
     def __init__(self, auth):
-        """Initializes the enforcer."""
         self.session = auth.session
         self.__prerequisites__ = [auth.session]
         self.auth = auth
 
-    def on_request(self):
-        if self.session.get(EMAIL_KEY):
-            return # The user is logged in
+    def on_request(self, other):
+        #the other field isn't needed, it's just there since the older requests passed two params to auth requests
+        if self.session.get("_user_email"):
+            print(self.session.get("_user_email"))
+            return
         else:
-            redirect(URL(LOGIN_PATH))
-
+            redirect(URL("sign_in"))
+    
     def transform(self, output, shared_data):
-        """Injects user in the template, so that I can refer to it
-        from layout.html"""
         return self.auth.transform(output, shared_data)
