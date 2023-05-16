@@ -127,10 +127,11 @@ def get_observations():
             print("Error in API Request")
         else:
             print("Successful API Request")
-            with open('observation_count.txt', 'w') as f:
+            with open('Log.txt', 'w') as f:
                 f.write(f"{observation_count} observations added - {datetime.datetime.now()}")
     else:
-        f.write(f"Already added those observations - {datetime.datetime.now()}")
+        with open('Log.txt', 'w') as f:
+            f.write(f"Already added those observations - {datetime.datetime.now()}")
     redirect('admin')
 
 
@@ -139,12 +140,16 @@ def get_observations():
 def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
+    with open('Log.txt', 'w') as f:
+        f.write(f"Writing CSV file to database - {datetime.datetime.now()}")
     redirect('admin')
 
 
 @action('drop_observations')
 @action.uses('admin.html', db)
 def drop_observations():
+    with open('Log.txt', 'w') as f:
+        f.write(f"Dropping observations - {datetime.datetime.now()}")
     drop_old_observations(10)
     redirect('admin')
 
