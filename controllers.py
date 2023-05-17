@@ -64,6 +64,12 @@ def admin():
     first_ten = db(db.observations_na).select(limitby=(0, 10))
     return dict(first_ten=first_ten)
 
+@action('fieldNotes')
+@action.uses('fieldNotes.html', db)
+def fieldNotes():
+    
+    return dict()
+
 
 @action('get_observations')
 @action.uses('admin.html', db)

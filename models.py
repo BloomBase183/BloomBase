@@ -32,6 +32,14 @@ db.define_table(
     'interests',
     Field('user_email', default=get_user_email),
 )
+db.define_table(
+    'field_notes',
+    Field('created_on', 'datetime', default=get_time),
+    Field('iNat_url'),
+    Field('notes', 'text'),
+    Field('location', 'text'),
+    Field('user_email', default=get_user_email),
+)
 
 db.interests.user_email.readable = db.interests.user_email.writable = False
 
