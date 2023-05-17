@@ -53,8 +53,8 @@ def index():
                 (db.observations_na.scientific_name.contains(user_input, all=True)) |
                 (db.observations_na.common_name.contains(user_input, all=True)) |
                 (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
-    return dict(results=results)
-
+    print("indexing")
+    return dict(results=results, observations_url = URL('grab_observations'))
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
@@ -148,6 +148,18 @@ def update_database():
     drop_old_observations(10) #Remove 10 day old observations
     print("Database Updated")
 
+@action('grab_observations')
+@action.uses(db)
+def grab_observations():
+    
+    a = db(db.observations_na).select().as_list()
+    # a = a[0:200]
+    print("grabbing url got")
+    # print("a is" + str(a))
+    print("got the value in db")
+    return dict(
+        observations=a
+    )
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")

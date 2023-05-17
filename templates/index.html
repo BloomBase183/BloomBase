@@ -1,45 +1,67 @@
 [[extend 'layout.html']]
+<!DOCTYPE html>
 
-<div class="section">
-    BloomBase!!
 
-    <!--Section for Search Bar and corresponding button-->
-      <form method="GET">
-        <div class="columns">
-          <div class="column is-7">
-            <input class="input is-rounded is-medium bulma-search" type="text" name="user_input" placeholder="Species">
-          </div>
-          <div class="column is-3">
-            <button type="submit" class="button is-rounded is-medium"><i class="fa fa-search" aria-hidden="true"></i></button>
-          </div>
-        </div>          
-      </form>
-    
-    <!--Section for displaying the obersvations-->
-    <div class="columns is-multiline">
-      [[for result in results:]]
-        <div class="column is-8">
-          <div class="box">
-            <div class="media">
-              <div class="media-left">
-                <figure class="image">
-                  <img src="[[=result.image_url]]" alt="[[=result.species_guess]]" style="height: 64px; width: 64px;"/>
-                </figure>
-              </div>
-              <div class="media-content">
-                <p class="title is-5">[[=result.common_name]]</p>
-                <p class="title is-6"><i>[[=result.scientific_name]]</i></p>
-              </div>
+<html>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <div class="column">
+    <title>Simple Map</title>
+
+      <div class="section" id="map"></div>
+    </div>
+    <div class="block">
+    <div class="section" id="vue-target">
+      <div class="has-text-weight-bold is-size-3">TESTINGG</div>
+
+
+        
+      
+    </div>
+  </div>
+  [[block page_scripts]]
+  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+  <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+    ({key: "AIzaSyCXdL5jteil0_--FgaFgb5vqiSxjua6km4", v: "beta"});</script>
+
+  
+  <script>
+    let observations_url = "[[=XML(observations_url)]]"
+  </script>
+  <script type="module" src="js/index.js"></script>
+
+</html>
+[[end]]
+  <!--Section for Search Bar and corresponding button-->
+    <form method="GET">
+      <div class="columns">
+        <div class="column is-7">
+          <input class="input is-rounded is-medium bulma-search" type="text" name="user_input" placeholder="Species">
+        </div>
+        <div class="column is-3">
+          <button type="submit" class="button is-rounded is-medium"><i class="fa fa-search" aria-hidden="true"></i></button>
+        </div>
+      </div>          
+    </form>
+
+  <!--Section for displaying the obersvations-->
+  <div class="columns is-multiline">
+    [[for result in results:]]
+      <div class="column is-8">
+        <div class="box">
+          <div class="media">
+            <div class="media-left">
+              <figure class="image">
+                <img src="[[=result.image_url]]" alt="[[=result.species_guess]]" style="height: 64px; width: 64px;"/>
+              </figure>
+            </div>
+            <div class="media-content">
+              <p class="title is-5">[[=result.common_name]]</p>
+              <p class="title is-6"><i>[[=result.scientific_name]]</i></p>
             </div>
           </div>
         </div>
-      [[pass]]
-    </div>
-    
+      </div>
+    [[pass]]
+  </div>
+
 </div>
-
-  
-
-
-
-

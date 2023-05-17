@@ -26,7 +26,7 @@ db.define_table(
     Field('scientific_name'),
     Field('common_name'),
     Field('iconic_taxon_name'),
-    Field('taxon_id', 'integer')
+    Field('taxon_id', 'integer') 
 )
 db.define_table(
     'interests',
