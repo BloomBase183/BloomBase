@@ -9,19 +9,20 @@
     [[if current_user:]]
     <table class="table">
         <thead><tr><th>First Name</th></tr></thead>
-        <tbody><tr><td>[[=current_user["first_name"] ]]</td></tr></tbody>
+        <tbody><tr><td>=current_user["first_name"] </td></tr></tbody>
     </table>
     <table class="table">
         <thead><tr><th>Last Name</th></tr></thead>
-        <tbody><tr><td>[[=current_user["last_name"] ]]</td></tr></tbody>
+        <tbody><tr><td>=current_user["last_name"] </td></tr></tbody>
     </table>
     <table class="table">
       <!-- Had some issues with this so I switched my focus to the authentication part  
-        <thead><tr><th>Interests <a class="button is-success" href="[[=URL('add_interest', user['id'], signer=url_signer)]]">Add</a></th></tr></thead>
+        <thead><tr><th>Interests <a class="button is-success" href="=URL('add_interest', user['id'], signer=url_signer)">Add</a></th></tr></thead>
         [[for interest in interests:]]
         <tbody><tr><td>[[=interest["interest_weight'"] ]]</td></tr></tbody>
         [[pass]]-->
-        ToDo
+        <thead><tr><th>Interests</th></tr></thead>
+        <tbody><tr><td>ToDo</td></tr></tbody>
     </table>
     <table class="table">
         <thead><tr><th>Notes</th></tr></thead>

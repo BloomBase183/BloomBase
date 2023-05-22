@@ -35,22 +35,24 @@
         <div class="navbar-end">
           <div class="navbar-item">
               <div class="buttons">
-                  [[if globals().get('user'):]]
+                  [[if auth.session.get("_user_email"):]]
                   <div class="navbar-item has-dropdown is-hoverable">
+                      <a class="button is-primary" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
                       <a class="navbar-link is-primary">
-                          [[=globals().get('user').get('email')]]
+
+                          [[=auth.session.get("_user_email")]]
                       </a>
                       <!--div class="navbar-dropdown">
-                          < <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
-              <a class="navbar-item" href="[[=URL('auth/profile')]]">Profile</a>
-              <a class="navbar-item" href="[[=URL('auth/change_password')]]">Change Password</a></li>
+                    < <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
+        <a class="navbar-item" href="[[=URL('auth/profile')]]">Profile</a>
+        <a class="navbar-item" href="[[=URL('auth/change_password')]]">Change Password</a></li>
 
-                      </div>-->
+                </div>-->
                   </div>
                   [[else:]]
-
+                      [[]]
                   <!--<a class="button is-link" href="[[=URL('auth/register')]]">Sign up</a>
-                  <a class="button is-success" href="[[=URL('auth/login')]]">Log in</a>-->
+    <a class="button is-success" href="[[=URL('auth/login')]]">Log in</a>-->
                   <a class="button is-success" href="[[=URL('sign_in')]]">Log in</a>
                   [[pass]]
               </div>

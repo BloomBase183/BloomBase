@@ -5,6 +5,7 @@ from pydal import Field
 from pydal.validators import IS_EMAIL
 
 #Code based off unit 8 video
+EMAIL_KEY = "_user_email"
 
 class EmailAuth(Fixture):
     def __init__(self, session, url_signer, emailer=None):
@@ -26,12 +27,13 @@ class EmailAuth(Fixture):
    
     @property
     def current_user(self):
-        user_email = self.session.get("_user_email")
-        if user_email:
-            #the user is logged in currently
-            return dict(email = user_email)
+        """Current_user is None if the user is not logged in,
+        else it is a dictionary containing the email (and only the email)."""
+        if self.session.get(EMAIL_KEY):
+            return dict(email=self.session.get(EMAIL_KEY))
         else:
             return None
+
 
     def login(self):
         if self.session.get("_user_email"):
@@ -82,8 +84,7 @@ class EmailAuthEnforcer(Fixture):
         self.__prerequisites__ = [auth.session]
         self.auth = auth
 
-    def on_request(self, other):
-        #the other field isn't needed, it's just there since the older requests passed two params to auth requests
+    def on_request(self, context):
         if self.session.get("_user_email"):
             print(self.session.get("_user_email"))
             return

@@ -33,28 +33,30 @@ from .common import db, session, T, cache, auth, signed_url, Field
 
 from .email_auth import EmailAuth
 url_signer = URLSigner(session)
-#auth = EmailAuth(session, url_signer)
+# auth = EmailAuth(session, url_signer)
 
 @action('index')
-@action.uses('index.html', db, session, url_signer, auth)
+@action.uses('index.html', auth, db, session, url_signer, auth)
 # @action.uses('index.html', db, auth.user)
 def index():
     return dict(
-    url_signer = url_signer
+    url_signer = url_signer,
+    auth = auth
     )
 
 @action('profile')
-@action.uses('profile.html', db, auth.enforce(), url_signer.verify(), session)
+@action.uses('profile.html', db, auth, auth.enforce(), url_signer.verify(), session)
 def profile():
-    user = db(db.users.user_email == get_user_email()).select()
+    user = session.get("_user_email")
     if len(user) < 1:
         redirect(URL('index'))
-    interests = db(db.interests.user_id == auth.current_user.get('id')).select()
+    #interests = db(db.interests.user_id == auth.current_user.get('id')).select()
     return dict(
         current_user = user[0],
-        interests = interests,
-        #interests = [],
-        url_signer = url_signer
+        #interests = interests,
+        interests = [],
+        url_signer = url_signer,
+        auth = auth
     )
 
 
