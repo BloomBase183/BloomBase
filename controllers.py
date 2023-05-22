@@ -37,7 +37,6 @@ import datetime
 
 import requests
 
-
 url_signer = URLSigner(session)
 
 
@@ -47,14 +46,14 @@ def index():
     # Section is for the searchBar component
     user_input = request.params.get('user_input')
     if user_input == "" or user_input is None:
-        results = db(db.observations_na).select(limitby=(0,10))
+        results = db(db.observations_na).select(limitby=(0, 10))
     else:
         results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                (db.observations_na.common_name.contains(user_input, all=True)) |
-                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
+                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                     (db.observations_na.common_name.contains(user_input, all=True)) |
+                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
     print("indexing")
-    return dict(results=results, observations_url = URL('grab_observations'))
+    return dict(results=results, observations_url=URL('grab_observations'))
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
@@ -64,11 +63,39 @@ def admin():
     first_ten = db(db.observations_na).select(limitby=(0, 10))
     return dict(first_ten=first_ten)
 
+
 @action('fieldNotes')
 @action.uses('fieldNotes.html', db)
 def fieldNotes():
-    
-    return dict()
+    # access all field notes associated with the current user email
+    field_notes = db(db.field_notes.user_email == get_user_email()).select()
+    return dict(field_notes=field_notes)
+
+
+@action('addNote', method=["GET", "POST"])
+@action.uses('addNote.html', db)
+def addNote():
+    # insert form, no record in database
+    form=Form(db.field_notes, formstyle=FormStyleBulma)
+    if form.accepted:
+        redirect(URL('fieldNotes'))
+    # if this is a get request, or a post but not accepted = with error
+    return dict(form=form)
+
+
+@action('viewNote/<field_note_id:int>', method=["GET", "POST"])
+@action.uses('viewNote.html', db)
+def viewNote(field_note_id=None):
+    assert field_note_id is not None
+    f = db.field_notes[field_note_id]
+    if f is None:
+        # Nothing found to be edited!
+        redirect(URL('fieldNotes'))
+    form = Form(db.field_notes, record=f, deletable=False, formstyle=FormStyleBulma)
+    if form.accepted:
+        redirect(URL('fieldNotes'))
+    # if this is a get request, or a post but not accepted = with error
+    return dict(form=form)
 
 
 @action('get_observations')
@@ -115,18 +142,6 @@ def get_observations():
             print("Error in API Request")  # Maybe print to a log?
         else:
             print("Succesful API Request")
-        # print({  #for debugging
-        #     'observed_on': observation['observed_on'],
-        #     'url': observation['uri'],
-        #     'image_url': observation['photos'][0]['url'],
-        #     'latitude': observation['geojson']['coordinates'][1],
-        #     'longitude': observation['geojson']['coordinates'][0],
-        #     'species_guess': observation['species_guess'],
-        #     'scientific_name': observation['taxon']['name'],
-        #     'common_name': observation['taxon']['preferred_common_name'],
-        #     'iconic_taxon_name': observation['taxon']['iconic_taxon_name'],
-        #     'taxon_id': observation['taxon']['id']
-        # })
     else:
         print("Already added those observations")
     redirect('admin')
@@ -147,17 +162,17 @@ def drop_observations():
     redirect('admin')
 
 
-#This is the function that would be called everyday
+# This is the function that would be called everyday
 @action('update_database')
 def update_database():
-    get_observations()  #Grab todays observations
-    drop_old_observations(10) #Remove 10 day old observations
+    get_observations()  # Grab todays observations
+    drop_old_observations(10)  # Remove 10 day old observations
     print("Database Updated")
+
 
 @action('grab_observations')
 @action.uses(db)
 def grab_observations():
-    
     a = db(db.observations_na).select().as_list()
     # a = a[0:200]
     print("grabbing url got")
@@ -166,6 +181,7 @@ def grab_observations():
     return dict(
         observations=a
     )
+
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
@@ -202,6 +218,3 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Succesfully Added CSV to database")
-
-
-

@@ -34,13 +34,32 @@ db.define_table(
 )
 db.define_table(
     'field_notes',
-    Field('created_on', 'datetime', default=get_time),
     Field('iNat_url'),
     Field('notes', 'text'),
     Field('location', 'text'),
     Field('user_email', default=get_user_email),
+    Field('created_on', 'datetime', default=get_time),
 )
 
+
 db.interests.user_email.readable = db.interests.user_email.writable = False
+db.interests.id.readable = db.interests.id.writable = False
+db.field_notes.user_email.readable = db.field_notes.user_email.writable = False
+db.field_notes.id.readable = db.field_notes.id.writable = False
+db.field_notes.created_on.writable = False
 
 db.commit()
+
+
+# create a function that makes test field_notes
+def make_test_field_notes(num_field_notes):
+    print("Adding", num_field_notes, "field notes.")
+    for i in range(num_field_notes):
+        db.field_notes.insert(
+            iNat_url='https://www.inaturalist.org/observations/12345678',
+            notes='This is a test note.',
+            location='This is a test location.',
+        )
+    db.commit()
+
+make_test_field_notes(5)
