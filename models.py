@@ -55,11 +55,14 @@ db.commit()
 def make_test_field_notes(num_field_notes):
     print("Adding", num_field_notes, "field notes.")
     for i in range(num_field_notes):
-        db.field_notes.insert(
+        note = dict(
             iNat_url='https://www.inaturalist.org/observations/12345678',
             notes='This is a test note.',
             location='This is a test location.',
         )
+        auth.register(note, send=False)
     db.commit()
 
+
 make_test_field_notes(5)
+
