@@ -47,7 +47,7 @@ class EmailAuth(Fixture):
                self.send_email(form.vars['email'], link)
                redirect(URL("sign_in_wait"))
                #redirect(URL(link))
-           return dict(form=form)
+           return dict(form=form, auth = self)
 
     def confirm(self, email=None):
         assert email is not None
@@ -55,7 +55,7 @@ class EmailAuth(Fixture):
         redirect(URL("index"))
 
     def wait(self):
-        return dict()
+        return dict(auth = self)
 
     def send_email(self, email, link):
         """Replace this with something that sends the link to the email."""
@@ -79,6 +79,7 @@ class EmailAuth(Fixture):
 
 
 class EmailAuthEnforcer(Fixture):
+    #ensures that a user is logged in when trying to access restricted pages
     def __init__(self, auth):
         self.session = auth.session
         self.__prerequisites__ = [auth.session]

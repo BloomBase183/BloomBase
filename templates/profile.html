@@ -9,18 +9,21 @@
     [[if current_user:]]
     <table class="table">
         <thead><tr><th>First Name</th></tr></thead>
-        <tbody><tr><td>=current_user["first_name"] </td></tr></tbody>
+        [[if not isinstance(current_user[0], str):]]
+        <tbody><tr><td>[[=current_user[0]["first_name"] ]]</td></tr></tbody>
+        [[else:]]
+        <!--No Name Given yet-->
+        [[pass]]
     </table>
     <table class="table">
         <thead><tr><th>Last Name</th></tr></thead>
-        <tbody><tr><td>=current_user["last_name"] </td></tr></tbody>
+        [[if not isinstance(current_user[0], str):]]
+        <tbody><tr><td>[[=current_user[0]["last_name"] ]]</td></tr></tbody>
+        [[else:]]
+        <!--No Name Given yet-->
+        [[pass]]
     </table>
     <table class="table">
-      <!-- Had some issues with this so I switched my focus to the authentication part  
-        <thead><tr><th>Interests <a class="button is-success" href="=URL('add_interest', user['id'], signer=url_signer)">Add</a></th></tr></thead>
-        [[for interest in interests:]]
-        <tbody><tr><td>[[=interest["interest_weight'"] ]]</td></tr></tbody>
-        [[pass]]-->
         <thead><tr><th>Interests</th></tr></thead>
         <tbody><tr><td>ToDo</td></tr></tbody>
     </table>

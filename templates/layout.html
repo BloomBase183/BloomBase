@@ -14,7 +14,7 @@
     <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
         <a class="navbar-item" href="[[=URL('index')]]">
-          Learn py4web
+          Home
           <!-- <img class="logo" width="150" src="images/site_icon.png"> -->
         </a>
 
@@ -37,17 +37,15 @@
               <div class="buttons">
                   [[if auth.session.get("_user_email"):]]
                   <div class="navbar-item has-dropdown is-hoverable">
-                      <a class="button is-primary" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
                       <a class="navbar-link is-primary">
 
                           [[=auth.session.get("_user_email")]]
                       </a>
-                      <!--div class="navbar-dropdown">
-                    < <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
-        <a class="navbar-item" href="[[=URL('auth/profile')]]">Profile</a>
-        <a class="navbar-item" href="[[=URL('auth/change_password')]]">Change Password</a></li>
+                      <div class="navbar-dropdown">
+                     <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
+        <a class="navbar-item" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
 
-                </div>-->
+                </div>
                   </div>
                   [[else:]]
                       [[]]

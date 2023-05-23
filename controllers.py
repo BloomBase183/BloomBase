@@ -47,12 +47,16 @@ def index():
 @action('profile')
 @action.uses('profile.html', db, auth, auth.enforce(), url_signer.verify(), session)
 def profile():
-    user = session.get("_user_email")
-    if len(user) < 1:
+    if  len(db(db.users.user_email == get_user_email()).select()) > 0:
+        #checks if the user exists in the database. If so then take their entry for the user field, otherwise just take their email
+        user = db(db.users.user_email == get_user_email()).select()
+    else:
+        user = [session.get("_user_email")]
+    if user is None:
         redirect(URL('index'))
     #interests = db(db.interests.user_id == auth.current_user.get('id')).select()
     return dict(
-        current_user = user[0],
+        current_user = user,
         #interests = interests,
         interests = [],
         url_signer = url_signer,
@@ -69,8 +73,8 @@ def create_profile():
         form = Form([Field('first_name'), Field('last_name')], csrf_session=session, formstyle=FormStyleBulma)
         if form.accepted:
             db.users.insert(first_name=form.vars["first_name"], last_name=form.vars["last_name"])
-            redirect(URL('index'))
-        return dict(form=form)
+            redirect(URL('profile', signer=url_signer))
+        return dict(form=form, url_signer = url_signer, auth = auth)
     else:
         redirect(URL('index'))
 
@@ -80,14 +84,14 @@ def create_profile():
 def edit_profile():
     #grab the user (Temporary, for use until we switch to email auth)
     user = db(db.users.user_email == get_user_email()).select()
-    if user is None:
+    if len(user) < 1:
         #user not found
-        redirect(URL('index'))
+        redirect(URL('create_profile', signer=url_signer))
     else:
         form = Form(db.users, record=user[0], deletable=False, csrf_session=session, formstyle=FormStyleBulma)
         if form.accepted:
-            redirect(URL('index'))
-        return dict(form=form)
+            redirect(URL('profile', signer=url_signer))
+        return dict(form=form, url_signer = url_signer, auth = auth)
 
 @action('add_interest/<user_id:int>', method=["GET", "POST"])
 @action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
