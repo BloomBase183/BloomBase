@@ -31,6 +31,8 @@ db.define_table(
 db.define_table(
     'interests',
     Field('user_email', default=get_user_email),
+    Field('species_id', 'integer'),
+    Field('species_name'),
 )
 db.define_table(
     'field_notes',

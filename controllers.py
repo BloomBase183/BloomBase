@@ -43,17 +43,22 @@ url_signer = URLSigner(session)
 @action('index')
 @action.uses('index.html', db)
 def index():
-    # Section is for the searchBar component
-    user_input = request.params.get('user_input')
-    if user_input == "" or user_input is None:
-        results = db(db.observations_na).select(limitby=(0, 10))
-    else:
-        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                     (db.observations_na.common_name.contains(user_input, all=True)) |
-                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
-    print("indexing")
-    return dict(results=results, observations_url=URL('grab_observations'))
+    return dict(
+        #results=results, 
+        observations_url=URL('grab_observations'),
+        search_url=URL('search'),
+        add_interest_url=URL('add_interest'),
+        )
+
+@action('search')
+@action.uses(db)
+def search():
+    user_input = request.params.get('q')
+    search_results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
+                    (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                    (db.observations_na.common_name.contains(user_input, all=True)) |
+                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
+    return dict(search_results=search_results)
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
@@ -96,6 +101,31 @@ def viewNote(field_note_id=None):
         redirect(URL('fieldNotes'))
     # if this is a get request, or a post but not accepted = with error
     return dict(form=form)
+
+@action('add_interest', method=["POST"])
+@action.uses(db)
+def add_interest():
+    # Grabbing neccessary info 
+    user_email = get_user_email()
+    species_id = request.params.get('species_id')
+    species_name = request.params.get('species_name')
+
+    # Checking if species is in database
+    species_exist = db(db.observations_na.id == species_id).select().first()
+    # Checking if species is already added as an interest from user
+    in_interest = db((db.interests.user_email == user_email) and 
+                     (db.interests.id == species_id) and
+                     (db.interests.species_name == species_name)).select().first()
+    
+    # Species already in interest or not in updated db
+    if not species_exist or in_interest is not None:
+        print("already added")
+        return 'false'
+    
+    # Adding interest into users table
+    db.interests.insert(user_email=user_email, species_id=species_id, species_name=species_name)
+    print("added interest")
+    return 'true'
 
 
 @action('get_observations')
