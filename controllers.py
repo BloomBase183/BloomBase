@@ -57,7 +57,7 @@ def profile():
     #interests = db(db.interests.user_id == auth.current_user.get('id')).select()
     return dict(
         current_user = user,
-        #interests = interests,
+        #interests are empty for now
         interests = [],
         url_signer = url_signer,
         auth = auth
@@ -67,6 +67,7 @@ def profile():
 @action('create_profile', method=["GET", "POST"])
 @action.uses('create_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def create_profile():
+    #creates an entry into the database, currently only associated with the name fields
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
         #don't have an account associated with the email
@@ -76,16 +77,17 @@ def create_profile():
             redirect(URL('profile', signer=url_signer))
         return dict(form=form, url_signer = url_signer, auth = auth)
     else:
+        #The user already has an existing profile
         redirect(URL('index'))
 
 
 @action('edit_profile', method=["GET", "POST"])
 @action.uses('edit_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def edit_profile():
-    #grab the user (Temporary, for use until we switch to email auth)
+    #currently only works with the name fields
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
-        #user not found
+        #user not found, so we instead make a new database entry for them
         redirect(URL('create_profile', signer=url_signer))
     else:
         form = Form(db.users, record=user[0], deletable=False, csrf_session=session, formstyle=FormStyleBulma)
@@ -93,24 +95,25 @@ def edit_profile():
             redirect(URL('profile', signer=url_signer))
         return dict(form=form, url_signer = url_signer, auth = auth)
 
-@action('add_interest/<user_id:int>', method=["GET", "POST"])
-@action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
-def add_interest(user_id = None):
-    assert user_id is not None
-    form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session, formstyle=FormStyleBulma)
-    if form.accepted:
-      db.interests.insert(interest_category=form.vars["interest_category"], interest_name=form.vars["Name"], weight=form.vars["Weight"], user_id = user_id)
-      redirect(URL('index'))
-    return dict(form=form)
-#def add_interest(user_id = None):
-#    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
-#    if form.accepted:
-#      redirect(URL('index'))
-#    return dict(form=form)
-
-@action('delete_interest/<user_id:int>')
-@action.uses(db, auth.enforce(), url_signer.verify())
-def delete_contact(contact_id=None):
-    assert contact_id is not None
-    db(db.interests.id == contact_id).delete()
-    redirect(URL('index'))
+# unfinished for now
+# @action('add_interest/<user_id:int>', method=["GET", "POST"])
+# @action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
+# def add_interest(user_id = None):
+#     assert user_id is not None
+#     form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session, formstyle=FormStyleBulma)
+#     if form.accepted:
+#       db.interests.insert(interest_category=form.vars["interest_category"], interest_name=form.vars["Name"], weight=form.vars["Weight"], user_id = user_id)
+#       redirect(URL('index'))
+#     return dict(form=form)
+# #def add_interest(user_id = None):
+# #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma)
+# #    if form.accepted:
+# #      redirect(URL('index'))
+# #    return dict(form=form)
+#
+# @action('delete_interest/<user_id:int>')
+# @action.uses(db, auth.enforce(), url_signer.verify())
+# def delete_contact(contact_id=None):
+#     assert contact_id is not None
+#     db(db.interests.id == contact_id).delete()
+#     redirect(URL('index'))

@@ -35,6 +35,7 @@ db.define_table(
 )
 
 db.define_table(
+    #WIP
     'interests',
     Field('user_id'),
     #gives the option for more filtering types later

@@ -42,7 +42,7 @@
                           [[=auth.session.get("_user_email")]]
                       </a>
                       <div class="navbar-dropdown">
-                     <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
+                     <a class="navbar-item" href="[[=URL('logout', signer=url_signer)]]">Logout</a>
         <a class="navbar-item" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
 
                 </div>
