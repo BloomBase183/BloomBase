@@ -39,53 +39,84 @@ import requests
 
 from .email_auth import EmailAuth
 url_signer = URLSigner(session)
-#auth = EmailAuth(session, url_signer)
+# auth = EmailAuth(session, url_signer)
 
+
+@action('index')
+@action.uses('index.html', db, session, url_signer, auth)
+def index():
+    # Section is for the searchBar component
+    user_input = request.params.get('user_input')
+    if user_input == "" or user_input is None:
+        results = db(db.observations_na).select(limitby=(0,10))
+    else:
+        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
+                (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                (db.observations_na.common_name.contains(user_input, all=True)) |
+                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
+    print("indexing")
+    return dict(results=results, observations_url = URL('grab_observations'), url_signer = url_signer, auth = auth)
+
+
+##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
+@action('admin')
+@action.uses('admin.html', db)
+def admin():
+    first_ten = db(db.observations_na).select(limitby=(0, 10))
+    return dict(first_ten=first_ten)
 
 
 @action('profile')
-@action.uses('profile.html', db, auth.enforce(), url_signer.verify(), session)
+@action.uses('profile.html', db, auth, auth.enforce(), url_signer.verify(), session)
 def profile():
-    user = db(db.users.user_email == get_user_email()).select()
-    if len(user) < 1:
+    if  len(db(db.users.user_email == get_user_email()).select()) > 0:
+        #checks if the user exists in the database. If so then take their entry for the user field, otherwise just take their email
+        user = db(db.users.user_email == get_user_email()).select()
+    else:
+        user = [session.get("_user_email")]
+    if user is None:
         redirect(URL('index'))
-    interests = db(db.interests.user_id == auth.current_user.get('id')).select()
+    #interests = db(db.interests.user_id == auth.current_user.get('id')).select()
     return dict(
-        current_user = user[0],
-        interests = interests,
-        #interests = [],
-        url_signer = url_signer
+        current_user = user,
+        #interests are empty for now
+        interests = [],
+        url_signer = url_signer,
+        auth = auth
     )
 
 
 @action('create_profile', method=["GET", "POST"])
 @action.uses('create_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def create_profile():
+    #creates an entry into the database, currently only associated with the name fields
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
         #don't have an account associated with the email
         form = Form([Field('first_name'), Field('last_name')], csrf_session=session, formstyle=FormStyleBulma)
         if form.accepted:
             db.users.insert(first_name=form.vars["first_name"], last_name=form.vars["last_name"])
-            redirect(URL('index'))
-        return dict(form=form)
+            redirect(URL('profile', signer=url_signer))
+        return dict(form=form, url_signer = url_signer, auth = auth)
     else:
+        #The user already has an existing profile
         redirect(URL('index'))
 
 
 @action('edit_profile', method=["GET", "POST"])
 @action.uses('edit_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def edit_profile():
-    #grab the user (Temporary, for use until we switch to email auth)
+    #currently only works with the name fields
     user = db(db.users.user_email == get_user_email()).select()
-    if user is None:
-        #user not found
-        redirect(URL('index'))
+    if len(user) < 1:
+        #user not found, so we instead make a new database entry for them
+        redirect(URL('create_profile', signer=url_signer))
     else:
         form = Form(db.users, record=user[0], deletable=False, csrf_session=session, formstyle=FormStyleBulma)
         if form.accepted:
-            redirect(URL('index'))
-        return dict(form=form)
+            redirect(URL('profile', signer=url_signer))
+        return dict(form=form, url_signer = url_signer, auth = auth)
+
 
 @action('add_interest/<user_id:int>', method=["GET", "POST"])
 @action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
@@ -110,28 +141,6 @@ def delete_contact(contact_id=None):
     redirect(URL('index'))
 
 
-@action('index')
-@action.uses('index.html', db, session, url_signer, auth)
-def index():
-    # Section is for the searchBar component
-    user_input = request.params.get('user_input')
-    if user_input == "" or user_input is None:
-        results = db(db.observations_na).select(limitby=(0,10))
-    else:
-        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                (db.observations_na.common_name.contains(user_input, all=True)) |
-                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
-    print("indexing")
-    return dict(results=results, observations_url = URL('grab_observations'), url_signer = url_signer)
-
-
-##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
-@action('admin')
-@action.uses('admin.html', db)
-def admin():
-    first_ten = db(db.observations_na).select(limitby=(0, 10))
-    return dict(first_ten=first_ten)
 
 
 @action('get_observations')
@@ -265,4 +274,27 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Succesfully Added CSV to database")
+
+# unfinished for now
+# @action('add_interest/<user_id:int>', method=["GET", "POST"])
+# @action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
+# def add_interest(user_id = None):
+#     assert user_id is not None
+#     form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session, formstyle=FormStyleBulma)
+#     if form.accepted:
+#       db.interests.insert(interest_category=form.vars["interest_category"], interest_name=form.vars["Name"], weight=form.vars["Weight"], user_id = user_id)
+#       redirect(URL('index'))
+#     return dict(form=form)
+# #def add_interest(user_id = None):
+# #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma)
+# #    if form.accepted:
+# #      redirect(URL('index'))
+# #    return dict(form=form)
+#
+# @action('delete_interest/<user_id:int>')
+# @action.uses(db, auth.enforce(), url_signer.verify())
+# def delete_contact(contact_id=None):
+#     assert contact_id is not None
+#     db(db.interests.id == contact_id).delete()
+#     redirect(URL('index'))
 

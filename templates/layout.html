@@ -14,7 +14,7 @@
     <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
         <a class="navbar-item" href="[[=URL('index')]]">
-          Learn py4web
+          Home
           <!-- <img class="logo" width="150" src="images/site_icon.png"> -->
         </a>
 
@@ -35,22 +35,22 @@
         <div class="navbar-end">
           <div class="navbar-item">
               <div class="buttons">
-                  [[if globals().get('user'):]]
+                  [[if auth.session.get("_user_email"):]]
                   <div class="navbar-item has-dropdown is-hoverable">
                       <a class="navbar-link is-primary">
-                          [[=globals().get('user').get('email')]]
-                      </a>
-                      <!--div class="navbar-dropdown">
-                          < <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
-              <a class="navbar-item" href="[[=URL('auth/profile')]]">Profile</a>
-              <a class="navbar-item" href="[[=URL('auth/change_password')]]">Change Password</a></li>
 
-                      </div>-->
+                          [[=auth.session.get("_user_email")]]
+                      </a>
+                      <div class="navbar-dropdown">
+                     <a class="navbar-item" href="[[=URL('logout', signer=url_signer)]]">Logout</a>
+        <a class="navbar-item" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
+
+                </div>
                   </div>
                   [[else:]]
-
+                      [[]]
                   <!--<a class="button is-link" href="[[=URL('auth/register')]]">Sign up</a>
-                  <a class="button is-success" href="[[=URL('auth/login')]]">Log in</a>-->
+    <a class="button is-success" href="[[=URL('auth/login')]]">Log in</a>-->
                   <a class="button is-success" href="[[=URL('sign_in')]]">Log in</a>
                   [[pass]]
               </div>

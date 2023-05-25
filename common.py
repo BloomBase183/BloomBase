@@ -83,13 +83,14 @@ elif settings.SESSION_TYPE == "database":
 # Instantiate the object and actions that handle auth
 # #######################################################
 
-auth = Auth(session, db, define_tables=False)
-
+#auth = Auth(session, db, define_tables=False)
+signed_url = URLSigner(session)
+auth = EmailAuth(session, signed_url)
 # Fixes the messages.
-auth_messages = copy.deepcopy(auth.MESSAGES)
-auth_messages['buttons']['sign-in'] = "Log in"
-auth_messages['buttons']['sign-up'] = "Sign up"
-auth_messages['buttons']['lost-password'] = "Lost password"
+# auth_messages = copy.deepcopy(auth.MESSAGES)
+# auth_messages['buttons']['sign-in'] = "Log in"
+# auth_messages['buttons']['sign-up'] = "Sign up"
+# auth_messages['buttons']['lost-password'] = "Lost password"
 
 # And button classes.
 auth_button_classes = {
@@ -101,17 +102,17 @@ auth_button_classes = {
     "submit": "button is-primary",
 }
 
-auth.use_username = False
-auth.param.button_classes = auth_button_classes
-auth.param.registration_requires_confirmation = False
-auth.param.registration_requires_approval = False
-auth.param.allowed_actions = settings.ALLOWED_ACTIONS
-auth.param.login_expiration_time = 3600
+# auth.use_username = False
+# auth.param.button_classes = auth_button_classes
+# auth.param.registration_requires_confirmation = False
+# auth.param.registration_requires_approval = False
+# auth.param.allowed_actions = settings.ALLOWED_ACTIONS
+# auth.param.login_expiration_time = 3600
 # # FIXME: Readd for production.
 # auth.param.password_complexity = {"entropy": 2}
 # auth.param.block_previous_password_num = 3
-auth.param.formstyle = FormStyleBulma
-auth.define_tables()
+# auth.param.formstyle = FormStyleBulma
+# auth.define_tables()
 
 # #######################################################
 # Configure email sender for auth
@@ -128,8 +129,8 @@ if settings.SMTP_SERVER:
 # #######################################################
 # Create a table to tag users as group members
 # #######################################################
-if auth.db:
-    groups = Tags(db.auth_user, "groups")
+# if auth.db:
+#     groups = Tags(db.auth_user, "groups")
 
 # #######################################################
 # Enable optional auth plugin
@@ -207,13 +208,13 @@ if settings.USE_CELERY:
 # #######################################################
 # Enable authentication
 # #######################################################
-auth.enable(uses=(session, T, db), env=dict(T=T))
+# auth.enable(uses=(session, T, db), env=dict(T=T))
 
 # #######################################################
 # Define convenience decorators
-# #######################################################
-unauthenticated = ActionFactory(db, session, T, flash, auth)
-authenticated = ActionFactory(db, session, T, flash, auth.user)
+# # #######################################################
+# unauthenticated = ActionFactory(db, session, T, flash, auth)
+# authenticated = ActionFactory(db, session, T, flash, auth.user)
 
-signed_url = URLSigner(session)
-auth = EmailAuth(session, signed_url)
+# signed_url = URLSigner(session)
+# auth = EmailAuth(session, signed_url)
