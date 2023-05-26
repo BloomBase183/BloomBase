@@ -151,8 +151,13 @@ def update_database():
 @action('grab_observations')
 @action.uses(db)
 def grab_observations():
-    
-    a = db(db.observations_na).select().as_list()
+    latmax = request.params.get('lat_max')
+    longmax = request.params.get('lng_max')
+    latmin = request.params.get('lat_min')
+    longmin = request.params.get('lng_min')
+    print(longmax, longmin, latmax, latmin)
+    query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
+    a = db(query).select().as_list()
     # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))

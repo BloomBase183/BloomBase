@@ -27,6 +27,9 @@ let init = (app) =>{
   };
   app.data ={
     observations: [],
+    markers: [],
+    currentMarkers: [],
+    map,
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -40,13 +43,14 @@ let init = (app) =>{
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
     // const { MarkerClusterer} = await google.maps.importLibrary("markerClusterer");
+    
     map = new Map(document.getElementById("map"), {
       center: { lat: 37.0902, lng: -100},
-      zoom: 5,
+      zoom: 10,
       streetViewControl: false,
       mapId: 'MainMap'
     });
-    
+
     console.log("mapping")
     infoWindow = new google.maps.InfoWindow();
    {
@@ -74,27 +78,67 @@ let init = (app) =>{
       }
     };
     console.log("waiting points")
-    await axios.get(observations_url)
-    .then(function (r) {
-      app.vue.observations = r.data.observations
- })
 
+console.log('got the points')
   // console.log(app.vue.observations)
-  const markers =  app.vue.observations.map(obs => {
-    const marker = new google.maps.Marker({
-      position: { lat: obs['latitude'], lng: obs['longitude']},
-      map: map,
-    });
-    marker.addListener("click", () => {
-      infoWindow.setContent(obs['common_name']);
-      infoWindow.open(map, marker);
-    });
-    return marker;
-   });
 
-   const markerCluster = new markerClusterer.MarkerClusterer({ markers, map });
+  let markers = []
+  // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
+  let markerCluster = new markerClusterer.MarkerClusterer({ markers, map });
 
-  console.log("done obs")
+  //  markerCluster.clearMarkers();
+   google.maps.event.addListener(map, "idle", () => {
+    // 
+    // markerCluster.clearMarkers();
+    // markerCluster.clearMarkers();
+    markers.splice(0,markers.length)
+    console.log("remap")
+    markerCluster.clearMarkers();
+    let bounds = map.getBounds()
+    let ne = bounds.getNorthEast();
+    let sw = bounds.getSouthWest();
+    axios.get(observations_url, {params: {
+      lat_max: ne.lat(), lat_min: sw.lat(),
+      lng_min: sw.lng(), lng_max: ne.lng(),
+    }})
+    .then(function (r)  {
+      markerCluster.clearMarkers();
+      app.vue.observations = r.data.observations
+      markers =  app.vue.observations.map(obs => {
+        const marker = new google.maps.Marker({
+          position: { lat: obs['latitude'], lng: obs['longitude']},
+          map: map,
+        });
+        marker.addListener("gmp-click", () => {
+          infoWindow.setContent(obs['common_name']);
+          infoWindow.open(map, marker);
+        });
+        // markerCluster.addMarkers([marker]);
+        return marker;
+    })
+    // markers.splice(0,markers.length)
+    markerCluster.addMarkers(markers);
+
+
+    
+  });
+    // hi = bnds
+    // var ne = bounds.getNorthEast();
+    // var sw = bounds.getSouthWest();
+//     await axios.get(observations_url, {params: {lax: , lam: , lox:, lom:}})
+//     .then(function (r) {
+//       app.vue.observations = r.data.observations
+//  })
+    // console.log(ne)
+    // console.log(sw)
+    console.log(map.getBounds())
+
+    // markerClu.addMarkers(markers);
+
+    // markerCluster.addMarkers(markers);
+
+  })
+  // console.log("done obs")
     
   };
   
