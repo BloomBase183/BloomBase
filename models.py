@@ -51,6 +51,6 @@ db.define_table(
 db.interests.user_id.readable = db.interests.user_id.writable = False
 db.users.user_email.readable = db.users.user_email.writable = False
 db.users.id.readable = db.users.id.writable = False
-db.interests.user_email.readable = db.interests.user_email.writable = False
+#db.interests.user_email.readable = db.interests.user_email.writable = False
 
 db.commit()
