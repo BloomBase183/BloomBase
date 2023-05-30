@@ -1,0 +1,38 @@
+[[extend 'layout.html']]
+
+<section class="section">
+    <div class="title">
+        Profile
+        <a class="button is-warning" href="[[=URL('edit_profile', signer=url_signer)]]">Edit</a>
+    </div>
+    [[if current_user:]]
+    <table class="table">
+        <thead><tr><th>First Name</th></tr></thead>
+        <!--Users can sign in with an email before having a name field set. This determines whether to display a name.
+        or if nothing should be displayed instead-->
+        [[if not isinstance(current_user[0], str):]]
+        <tbody><tr><td>[[=current_user[0]["first_name"] ]]</td></tr></tbody>
+        [[else:]]
+        <!--No Name Given yet-->
+        [[pass]]
+    </table>
+    <table class="table">
+        <thead><tr><th>Last Name</th></tr></thead>
+        [[if not isinstance(current_user[0], str):]]
+        <tbody><tr><td>[[=current_user[0]["last_name"] ]]</td></tr></tbody>
+        [[else:]]
+        <!--No Name Given yet-->
+        [[pass]]
+    </table>
+    <table class="table">
+        <thead><tr><th>Interests</th></tr></thead>
+        <tbody><tr><td>ToDo</td></tr></tbody>
+    </table>
+    <table class="table">
+        <thead><tr><th>Notes</th></tr></thead>
+        <tbody><tr><td>Notes Go Here</td></tr></tbody>
+    </table>
+    [[else:]]
+    <div>Profile Not Found</div>
+    [[pass]]
+</section>

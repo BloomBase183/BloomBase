@@ -25,11 +25,42 @@ let init = (app) =>{
         app.vue.observations = r.data.observations
      })
   };
+
+  app.search = function () {
+    if (app.vue.query.length > 1) {
+      axios.get(search_url, {params: {q: app.vue.query}}).then(function(search_results){
+        app.vue.search_results = search_results.data.search_results;
+      });
+    } else {
+      app.vue.search_results = [];
+    }
+    
+  };
+
+  app.add_interest = function (result) {
+    axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name}).then(response => {
+      console.log('Interest added successfully');
+    })
+    .catch(error => {
+      console.error('Failed to add interest', error)
+    });
+  };
+
+  app.clear_search = function () {
+    this.query = "";
+    app.vue.search_results = [];
+  };
+
   app.data ={
     observations: [],
+    search_results: [],
+    query: "",
   };
   app.methods = {
     get_observations: app.get_observations,
+    search: app.search,
+    add_interest: app.add_interest,
+    clear_search: app.clear_search,
   };
   app.vue = new Vue({
     el: "#vue-target",
