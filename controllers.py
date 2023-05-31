@@ -64,7 +64,7 @@ def search():
                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
                     (db.observations_na.common_name.contains(user_input, all=True)) |
                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
-    return dict(search_results=search_results)
+    return dict(search_results=search_results.as_list())
 
 
 
@@ -77,7 +77,7 @@ def admin():
 
 
 @action('fieldNotes')
-@action.uses('fieldNotes.html', db)
+@action.uses('fieldNotes.html', db, auth)
 def fieldNotes():
     # access all field notes associated with the current user email
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
@@ -85,7 +85,7 @@ def fieldNotes():
 
 
 @action('addNote', method=["GET", "POST"])
-@action.uses('addNote.html', db)
+@action.uses('addNote.html', db, auth)
 def addNote():
     # insert form, no record in database
     form=Form(db.field_notes, formstyle=FormStyleBulma)
@@ -96,7 +96,7 @@ def addNote():
 
 
 @action('viewNote/<field_note_id:int>', method=["GET", "POST"])
-@action.uses('viewNote.html', db)
+@action.uses('viewNote.html', db, auth)
 def viewNote(field_note_id=None):
     assert field_note_id is not None
     f = db.field_notes[field_note_id]

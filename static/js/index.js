@@ -37,6 +37,11 @@ let init = (app) =>{
     
   };
 
+  app.show_observation = function (observation) {
+    console.log('clicked on observation:', observation);
+    this.clicked_observation = observation;
+  };
+
   app.add_interest = function (result) {
     axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name}).then(response => {
       console.log('Interest added successfully');
@@ -55,12 +60,14 @@ let init = (app) =>{
     observations: [],
     search_results: [],
     query: "",
+    clicked_observation: null,
   };
   app.methods = {
     get_observations: app.get_observations,
     search: app.search,
     add_interest: app.add_interest,
     clear_search: app.clear_search,
+    show_observation: app.show_observation,
   };
   app.vue = new Vue({
     el: "#vue-target",
