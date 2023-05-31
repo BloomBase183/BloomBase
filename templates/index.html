@@ -6,6 +6,14 @@
   }
 </style>
 
+<style>
+  .box:not(.modal-box):hover {
+  background-color: lightblue; /* Customize the highlight color */
+  border: 1px solid lightblue; /* Customize the border color */
+  }
+</style>
+
+
 
 
 <div class="section" id="vue-target">
@@ -67,30 +75,31 @@
       </header>
       <section class="modal-card-body">
         <div class="columns">
-          <div class="column is-4">
-            <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 256px; width: 256px;"/>
+          <div class="column is-6">
+            <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 326px; width: 312px;"/>
           </div>
-          <div class="column is-8">
-            <div class="box">
+          <div class="column is-6">
+            <div class="box modal-box" style="width: 300px; height: 150px;">
               <p class="is-size-3 is-flex is-align-items-center">Location</p>
             </div>
-            <div class="box">
+            <div class="box modal-box" style="width: 300px; height: 150px;">
               <p class="is-size-3 is-flex is-align-items-center">iNat Link</p>
             </div>
           </div>
         </div>
-        <p class="is-size-3">Notes</p>
+        <p class="is-size-3"> Field Notes</p>
         <p class="is-size-4">This is where we will put the notes</p>
         <p class="is-size-4">notes notes notes</p>
         <p class="is-size-4">notes notes notes</p>
         <p class="is-size-4">notes notes notes</p>
         <p class="is-size-4">notes notes notes</p>
         <p class="is-size-4">
-          Nulla efficitur eleifend nisi, sit amet bibendum sapien fringilla ac. Mauris euismod metus a tellus laoreet, at elementum ex efficitur.
-
-Maecenas eleifend sollicitudin dui, faucibus sollicitudin augue cursus non. Ut finibus eleifend arcu ut vehicula. Mauris eu est maximus est porta condimentum in eu justo. Nulla id iaculis sapien.
-
-Phasellus porttitor enim id metus volutpat ultricies. Ut nisi nunc, blandit sed dapibus at, vestibulum in felis. Etiam iaculis lorem ac nibh bibendum rhoncus. Nam interdum efficitur ligula sit amet ullamcorper. Etiam tristique, leo vitae porta faucibus, mi lacus laoreet metus, at cursus leo est vel tellus. Sed ac posuere est. Nunc ultricies nunc neque, vitae ultricies ex sodales quis. Aliquam eu nibh in libero accumsan pulvinar. Nullam nec nisl placerat, pretium metus vel, euismod ipsum. Proin tempor cursus nisl vel condimentum. Nam pharetra varius metus non pellentesque.
+          helllo world hwllow woerjkfjskjfsjdfjsjjsd
+          fjksdfjlkjsfkljkfjkfjklsdjfklsdjfkjsdkfjklj
+          sdkfljslfjsdlkfjsklfjlskfjlkjfslkjlkfjklsjfklsfdj
+          kljsfjfklsjfklsjfklsjfklsjfklfjskldfjskdlfjksdlf
+          skjfsjflksjfkldsjfklsdjfklsjfksldfjklsfjklfjlkdfj
+          skljsdjflksdfjklsdjfklsdjfklsjfklsdjfklsdjfklsfjsk
         </p>
 
       </section>
@@ -117,7 +126,6 @@ Phasellus porttitor enim id metus volutpat ultricies. Ut nisi nunc, blandit sed 
   let add_interest_url = "[[=XML(add_interest_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
-<script type="module" src="css/style.css"></script>
 [[end]]
 
 
