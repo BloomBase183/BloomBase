@@ -9,7 +9,10 @@ let init = (app) =>{
     a.map((e) => {e._idx = k++;});
     return a;
 };
-
+  app.popup = (obs) =>{
+    console.log(obs);
+    //Put the popup code in here
+  }
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -112,6 +115,7 @@ console.log('got the points')
         marker.addListener("gmp-click", () => {
           infoWindow.setContent(obs['common_name']);
           infoWindow.open(map, marker);
+          app.popup(obs);
         });
         // markerCluster.addMarkers([marker]);
         return marker;
