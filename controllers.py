@@ -33,8 +33,9 @@ from .models import get_user_email
 from .common import db, session, T, cache, auth, signed_url
 from .settings import APP_FOLDER
 import os
+import json
 import datetime
-
+JSON_FILE = os.path.join(APP_FOLDER, "private", "keys.json")
 import requests
 
 
@@ -45,6 +46,12 @@ url_signer = URLSigner(session)
 @action.uses('index.html', db)
 def index():
     # Section is for the searchBar component
+    f = open(JSON_FILE)
+
+    rows = json.load(f)
+    mapkey = rows[0].get('maps')
+    print("file name is")
+    print(mapkey)
     user_input = request.params.get('user_input')
     if user_input == "" or user_input is None:
         results = db(db.observations_na).select(limitby=(0,10))
@@ -54,7 +61,7 @@ def index():
                 (db.observations_na.common_name.contains(user_input, all=True)) |
                 (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     print("indexing")
-    return dict(results=results, observations_url = URL('grab_observations'))
+    return dict(results=results, observations_url = URL('grab_observations'), MAPS_API_KEY=mapkey)
 
 
 ##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
