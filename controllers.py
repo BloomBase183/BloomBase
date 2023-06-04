@@ -33,8 +33,9 @@ from .models import get_user_email
 from .common import db, session, T, cache, auth, signed_url, Field
 from .settings import APP_FOLDER
 import os
+import json
 import datetime
-
+JSON_FILE = os.path.join(APP_FOLDER, "private", "keys.json")
 import requests
 
 
@@ -47,13 +48,28 @@ url_signer = URLSigner(session)
 @action('index')
 @action.uses('index.html', db, session, url_signer, auth)
 def index():
+
+    # Section is for the searchBar component
+    f = open(JSON_FILE)
+
+    rows = json.load(f)
+    mapkey = rows[0].get('maps')
+    user_input = request.params.get('user_input')
+    if user_input == "" or user_input is None:
+        results = db(db.observations_na).select(limitby=(0,10))
+    else:
+        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
+                (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                (db.observations_na.common_name.contains(user_input, all=True)) |
+                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     return dict(
-        #results=results, 
+        results=results,
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
         add_interest_url=URL('add_interest'),
         url_signer = url_signer,
-        auth = auth
+        auth = auth,
+        MAPS_API_KEY=mapkey,
         )
 
 @action('search')
@@ -289,7 +305,13 @@ def update_database():
 @action('grab_observations')
 @action.uses(db)
 def grab_observations():
-    a = db(db.observations_na).select().as_list()
+    latmax = request.params.get('lat_max')
+    longmax = request.params.get('lng_max')
+    latmin = request.params.get('lat_min')
+    longmin = request.params.get('lng_min')
+    print(longmax, longmin, latmax, latmin)
+    query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
+    a = db(query).select().as_list()
     # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))
