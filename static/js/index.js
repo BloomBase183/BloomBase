@@ -11,8 +11,20 @@ let init = (app) =>{
 };
   app.popup = (obs) =>{
     console.log(obs);
+    app.data.clicked_observation = obs
     //Put the popup code in here
-  }
+  };
+  app.depop = () => {
+    app.data.clicked_observation = null
+  };
+  app.fnotepopup = (fnote) =>{
+    console.log(fnote);
+    app.data.clicked_note = fnote
+    //Put the popup code in here
+  };
+  app.depopnote = () => {
+    app.data.clicked_note = null
+  };
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -28,7 +40,9 @@ let init = (app) =>{
         app.vue.observations = r.data.observations
      })
   };
-
+  app.desel = function() {
+    app.data.clicked_observation = null;
+  }
   app.search = function () {
     if (app.vue.query.length > 1) {
       axios.get(search_url, {params: {q: app.vue.query}}).then(function(search_results){
@@ -70,6 +84,7 @@ let init = (app) =>{
     filterinterests: false,
     notes: [],
     clicked_observation: null,
+    clicked_note: null,
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -78,6 +93,11 @@ let init = (app) =>{
     clear_search: app.clear_search,
     interonly: app.interonly,
     show_observation: app.show_observation,
+    desel: app.desel,
+    depop: app.depop,
+    clicked_observation: app.clicked_observation,
+    clicked_note: app.clicked_note,
+    depopnote: app.depopnote,
   };
 
   app.vue = new Vue({

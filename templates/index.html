@@ -70,8 +70,9 @@
     </div>
 
   <!-- Section for pop-up-->
-  <div v-if="clicked_observation" class="modal is-active">
+  <div v-if="clicked_observation != null" class="modal is-active" >
     <div class="modal-background" @click="clicked_observation = null"></div>
+    <button class="delete" aria-label="close" @click="clicked_observation = null"></button>
     <div class="modal-card">
       <header class="modal-card-head">
         <p class="modal-card-title is-size-3">{{ clicked_observation.common_name }}
