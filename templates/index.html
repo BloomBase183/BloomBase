@@ -6,6 +6,14 @@
   }
 </style>
 
+<style>
+  .box:not(.modal-box):hover {
+  background-color: lightblue; /* Customize the highlight color */
+  border: 1px solid lightblue; /* Customize the border color */
+  }
+</style>
+
+
 
 
 <div class="section" id="vue-target">
@@ -24,9 +32,10 @@
     </div>
   <!--Section for Search bar results -->
   </div>
+  
   <div class="field" v-for="result in search_results">
     <div class="column is-7">
-      <div class="box">
+      <div class="box" @click="show_observation(result)">
         <div class="media">
           <div class="media-left">
             <figure class="image">
@@ -38,7 +47,7 @@
             <p class="title is-6"><i>{{result.scientific_name}}</i></p>
           </div>
           <div class="media-right is-centered">
-            <button class="button is-hoverable is-centered" @click="add_interest(result)">Add Interest</button>
+            <button class="button is-hoverable is-centered" @click.stop="add_interest(result)">Add Interest</button>
           </div>
         </div>
       </div>
@@ -59,6 +68,57 @@
         <div class="has-text-weight-bold is-size-3">TESTINGG</div>
       </div>
     </div>
+
+  <!-- Section for pop-up-->
+  <div v-if="clicked_observation" class="modal is-active">
+    <div class="modal-background" @click="clicked_observation = null"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title is-size-3">{{ clicked_observation.common_name }}
+          <span class="is-size-6"> ({{ clicked_observation.scientific_name }})</span>
+        </p>
+        <button class="delete" aria-label="close" @click="clicked_observation = null"></button>
+      </header>
+      <section class="modal-card-body">
+        <div class="columns">
+          <div class="column is-6">
+            <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 326px; width: 312px;"/>
+          </div>
+          <div class="column is-6">
+            <div class="box modal-box" style="width: 300px; height: 150px;">
+              <p class="is-size-3 is-flex is-align-items-center">Location</p>
+            </div>
+            <div class="box modal-box" style="width: 300px; height: 150px;">
+              <p class="is-size-3 is-flex is-align-items-center">iNat Link</p>
+            </div>
+          </div>
+        </div>
+        <p class="is-size-3"> Field Notes</p>
+        <p class="is-size-4">This is where we will put the notes</p>
+        <p class="is-size-4">notes notes notes</p>
+        <p class="is-size-4">notes notes notes</p>
+        <p class="is-size-4">notes notes notes</p>
+        <p class="is-size-4">notes notes notes</p>
+        <p class="is-size-4">
+          helllo world hwllow woerjkfjskjfsjdfjsjjsd
+          fjksdfjlkjsfkljkfjkfjklsdjfklsdjfkjsdkfjklj
+          sdkfljslfjsdlkfjsklfjlskfjlkjfslkjlkfjklsjfklsfdj
+          kljsfjfklsjfklsjfklsjfklsjfklfjskldfjskdlfjksdlf
+          skjfsjflksjfkldsjfklsdjfklsjfksldfjklsfjklfjlkdfj
+          skljsdjflksdfjklsdjfklsdjfklsjfklsdjfklsdjfklsfjsk
+        </p>
+
+      </section>
+        
+        <!-- Include additional information as needed -->
+    </div>
+    
+  </div>
+  
+  
+
+  
+
 </div>
   
 
