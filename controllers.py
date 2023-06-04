@@ -63,13 +63,13 @@ def index():
                 (db.observations_na.common_name.contains(user_input, all=True)) |
                 (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     return dict(
-        results=results, 
+        results=results,
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
         add_interest_url=URL('add_interest'),
         url_signer = url_signer,
         auth = auth,
-        MAPS_API_KEY=mapkey
+        MAPS_API_KEY=mapkey,
         )
 
 @action('search')
@@ -81,7 +81,6 @@ def search():
                     (db.observations_na.common_name.contains(user_input, all=True)) |
                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
     return dict(search_results=search_results)
-
 
 
 

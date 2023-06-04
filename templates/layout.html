@@ -14,7 +14,7 @@
     <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
         <a class="navbar-item" href="[[=URL('index')]]">
-          Learn py4web
+          Home
           <!-- <img class="logo" width="150" src="images/site_icon.png"> -->
         </a>
 
@@ -34,24 +34,26 @@
 
         <div class="navbar-end">
           <div class="navbar-item">
-            <div class="buttons">
-              [[if globals().get('user'):]]
-                <div class="navbar-item has-dropdown is-hoverable">
-                  <a class="navbar-link is-primary">
-                    [[=globals().get('user').get('email')]]
-                  </a>
-                  <div class="navbar-dropdown">
-                    <a class="navbar-item" href="[[=URL('auth/logout')]]">Logout</a>
-                    <a class="navbar-item" href="[[=URL('auth/profile')]]">Profile</a>
-                    <a class="navbar-item" href="[[=URL('auth/change_password')]]">Change Password</a></li>
+              <div class="buttons">
+                  [[if auth.session.get("_user_email"):]]
+                  <div class="navbar-item has-dropdown is-hoverable">
+                      <a class="navbar-link is-primary">
 
-                  </div>
+                          [[=auth.session.get("_user_email")]]
+                      </a>
+                      <div class="navbar-dropdown">
+                     <a class="navbar-item" href="[[=URL('logout', signer=url_signer)]]">Logout</a>
+        <a class="navbar-item" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
+
                 </div>
-              [[else:]]
-                <a class="button is-link" href="[[=URL('auth/register')]]">Sign up</a>
-                <a class="button is-success" href="[[=URL('auth/login')]]">Log in</a>
-              [[pass]]
-            </div>
+                  </div>
+                  [[else:]]
+                      [[]]
+                  <!--<a class="button is-link" href="[[=URL('auth/register')]]">Sign up</a>
+    <a class="button is-success" href="[[=URL('auth/login')]]">Log in</a>-->
+                  <a class="button is-success" href="[[=URL('sign_in')]]">Log in</a>
+                  [[pass]]
+              </div>
           </div>
         </div>
       </div>
@@ -60,6 +62,12 @@
     <!-- beginning of HTML inserted by extending template -->
     [[include]]
     <!-- end of HTML inserted by extending template -->
+<!--    <footer class="footer">-->
+<!--      <div class="content has-text-centered">-->
+<!--        Made with <a href="https://py4web.com">py4web</a>.-->
+<!--        <a href="https://learn-py4web.github.io">Learn py4web!</a>-->
+<!--      </div>-->
+<!--    </footer>-->
   </body>
   <script src="js/sugar.min.js"></script>
   <script src="js/axios.min.js"></script>

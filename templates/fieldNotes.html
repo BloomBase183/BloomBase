@@ -1,0 +1,35 @@
+[[extend 'layout.html']]
+
+<section class="section">
+    <h1 class="title">Field Notes</h1>
+    <table class="table is-striped">
+        <thead>
+
+        </thead>
+        <tbody>
+            [[for note in field_notes:]]
+                <a href="[[=URL('viewNote', note.id)]]" class="button is-outlined is-success m-2 is-fullwidth">
+                    <div class="tile is-ancestor">
+                      <div class="tile is-parent">
+                        <article class="tile is-child">
+                          <p class="title">[[=note.location]]</p>
+                        </article>
+                      </div>
+                      <div class="tile is-parent">
+                        <article class="tile is-child">
+                          <p class="subtitle">[[=note.notes]]</p>
+                        </article>
+                      </div>
+                      <div class="tile is-parent">
+                        <article class="tile is-child">
+                          <div class="content">
+                            <p>[[=note.created_on]]</p>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+                </a>
+            [[pass]]
+        </tbody>
+    </table>
+</section>
