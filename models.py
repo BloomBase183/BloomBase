@@ -42,6 +42,8 @@ db.define_table(
     Field('iNat_url'),
     Field('notes', 'text'),
     Field('location', 'text'),
+    Field('latitude', 'double'),
+    Field('longitude', 'double'),
     Field('user_email', default=get_user_email),
     Field('created_on', 'datetime', default=get_time),
 )

@@ -54,10 +54,7 @@ let init = (app) =>{
     this.query = "";
     app.vue.search_results = [];
   };
-  app.interonly = function() {
-    console.log(app.data.filterinterests)
-    app.data.filterinterests = !app.data.filterinterests;
-  };
+
   app.data ={
     observations: [],
     markers: [],
@@ -66,6 +63,7 @@ let init = (app) =>{
     search_results: [],
     query: "",
     filterinterests: false,
+    notes: [],
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -91,6 +89,7 @@ let init = (app) =>{
       streetViewControl: false,
       mapId: 'MainMap'
     });
+    app.data.map = map
     const map2 = new Map(document.getElementById("map2"), {
       center: { lat: 37.0902, lng: -100},
       zoom: 10,
@@ -131,15 +130,32 @@ console.log('got the points')
   // console.log(app.vue.observations)
 
   let markers = []
+  let markers2 = []
   // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
   let markerCluster = new markerClusterer.MarkerClusterer({ markers, map });
-
+  axios.get(getfieldnotes_url).then(function (r)  {
+    app.data.notes = r.data.field_notes
+    markers2 =  app.vue.notes.map(obs => {
+      console.log(obs)
+      const marker2 = new google.maps.Marker({
+        position: { lat: obs['latitude'], lng: obs['longitude']},
+        map: map2,
+      });
+      marker2.addListener("gmp-click", () => {
+        infoWindow.open(map2, marker2);
+        app.fnotepopup(obs);
+      });
+      // markerCluster.addMarkers([marker]);
+      return marker2;
+  })
+  // markers.splice(0,markers.length)
+  });
   //  markerCluster.clearMarkers();
    google.maps.event.addListener(map, "idle", () => {
     // 
     // markerCluster.clearMarkers();
     // markerCluster.clearMarkers();
-    markers.splice(0,markers.length)
+    // markers.splice(0,markers.length)
     console.log("remap")
     markerCluster.clearMarkers();
     let bounds = map.getBounds()
@@ -171,6 +187,7 @@ console.log('got the points')
 
     
   });
+  
     // hi = bnds
     // var ne = bounds.getNorthEast();
     // var sw = bounds.getSouthWest();
@@ -202,6 +219,10 @@ console.log('got the points')
   };
   app.init()
 };
-
+app.interonly = function() {
+  console.log(app.data.filterinterests)
+  app.data.map.setZoom(app.data.map.getZoom());
+  app.data.filterinterests = !app.data.filterinterests;
+};
 
 init(app);

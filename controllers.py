@@ -69,6 +69,7 @@ def index():
         add_interest_url=URL('add_interest'),
         url_signer = url_signer,
         auth = auth,
+        getfieldnotes_url=URL('get_fieldNotes'),
         MAPS_API_KEY=mapkey,
         )
 
@@ -93,12 +94,21 @@ def admin():
 
 
 @action('fieldNotes')
-@action.uses('fieldNotes.html', db)
+@action.uses('fieldNotes.html', db, url_signer, auth)
 def fieldNotes():
     # access all field notes associated with the current user email
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
     return dict(field_notes=field_notes)
 
+
+@action('get_fieldNotes')
+@action.uses(db, url_signer, auth)
+def fieldNotes():
+    # access all field notes associated with the current user email
+    print("gettinfnote")
+    field_notes = db(db.field_notes.user_email == get_user_email()).select()
+    print(field_notes)
+    return dict(field_notes=field_notes)
 
 @action('addNote', method=["GET", "POST"])
 @action.uses('addNote.html', db)
@@ -310,20 +320,17 @@ def grab_observations():
     latmin = request.params.get('lat_min')
     longmin = request.params.get('lng_min')
     filterok = request.params.get('filter')
-    print(filterok)
     uid = get_userID()
     if(filterok == "true"):
         ints = db(db.interests.user_id == uid).select()
         ints = [x.get('species_name') for x in ints]
         ints.append('Prostrate Capeweed')
-        print(ints)
     
     print(longmax, longmin, latmax, latmin)
     query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
     if(filterok == "true"):
         a = [z for z in a if (z.get('common_name') in ints)]
-    print(a)
     # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))
