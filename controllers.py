@@ -29,7 +29,7 @@ import csv
 from py4web import action, request, abort, redirect, URL, Field
 from py4web.utils.form import Form, FormStyleBulma
 from py4web.utils.url_signer import URLSigner
-from .models import get_user_email
+from .models import get_user_email, get_userID
 from .common import db, session, T, cache, auth, signed_url, Field
 from .settings import APP_FOLDER
 import os
@@ -303,15 +303,27 @@ def update_database():
 
 
 @action('grab_observations')
-@action.uses(db)
+@action.uses(db, url_signer, auth)
 def grab_observations():
     latmax = request.params.get('lat_max')
     longmax = request.params.get('lng_max')
     latmin = request.params.get('lat_min')
     longmin = request.params.get('lng_min')
+    filterok = request.params.get('filter')
+    print(filterok)
+    uid = get_userID()
+    if(filterok == "true"):
+        ints = db(db.interests.user_id == uid).select()
+        ints = [x.get('species_name') for x in ints]
+        ints.append('Prostrate Capeweed')
+        print(ints)
+    
     print(longmax, longmin, latmax, latmin)
     query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
+    if(filterok == "true"):
+        a = [z for z in a if (z.get('common_name') in ints)]
+    print(a)
     # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))

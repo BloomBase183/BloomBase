@@ -50,10 +50,14 @@ let init = (app) =>{
   };
 
   app.clear_search = function () {
+    console.log("clicked")
     this.query = "";
     app.vue.search_results = [];
   };
-
+  app.interonly = function() {
+    console.log(app.data.filterinterests)
+    app.data.filterinterests = !app.data.filterinterests;
+  };
   app.data ={
     observations: [],
     markers: [],
@@ -61,13 +65,16 @@ let init = (app) =>{
     map,
     search_results: [],
     query: "",
+    filterinterests: false,
   };
   app.methods = {
     get_observations: app.get_observations,
     search: app.search,
     add_interest: app.add_interest,
     clear_search: app.clear_search,
+    interonly: app.interonly,
   };
+
   app.vue = new Vue({
     el: "#vue-target",
     data: app.data,
@@ -78,13 +85,18 @@ let init = (app) =>{
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
     // const { MarkerClusterer} = await google.maps.importLibrary("markerClusterer");
     
-    map = new Map(document.getElementById("map"), {
+    const map = new Map(document.getElementById("map"), {
       center: { lat: 37.0902, lng: -100},
       zoom: 10,
       streetViewControl: false,
       mapId: 'MainMap'
     });
-
+    const map2 = new Map(document.getElementById("map2"), {
+      center: { lat: 37.0902, lng: -100},
+      zoom: 10,
+      streetViewControl: false,
+      mapId: 'FnoteMap'
+    });
     console.log("mapping")
     infoWindow = new google.maps.InfoWindow();
    {
@@ -102,6 +114,8 @@ let init = (app) =>{
             infoWindow.open(map);
             map.setCenter(pos);
             map.setZoom(10);
+            map2.setCenter(pos);
+            map2.setZoom(10);
           },
           () => {
             handleLocationError(true, infoWindow, map.getCenter());
@@ -133,7 +147,7 @@ console.log('got the points')
     let sw = bounds.getSouthWest();
     axios.get(observations_url, {params: {
       lat_max: ne.lat(), lat_min: sw.lat(),
-      lng_min: sw.lng(), lng_max: ne.lng(),
+      lng_min: sw.lng(), lng_max: ne.lng(), filter: app.data.filterinterests,
     }})
     .then(function (r)  {
       markerCluster.clearMarkers();
