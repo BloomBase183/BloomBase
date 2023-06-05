@@ -1,37 +1,44 @@
 [[extend 'layout.html']]
 
 <section class="section">
-    <div class="title">
-        Profile
-        <a class="button is-warning" href="[[=URL('edit_profile', signer=url_signer)]]">Edit</a>
-    </div>
+
     [[if current_user:]]
-    <table class="table">
-        <thead><tr><th>First Name</th></tr></thead>
-        <!--Users can sign in with an email before having a name field set. This determines whether to display a name.
-        or if nothing should be displayed instead-->
-        [[if not isinstance(current_user[0], str):]]
-        <tbody><tr><td>[[=current_user[0]["first_name"] ]]</td></tr></tbody>
-        [[else:]]
-        <!--No Name Given yet-->
-        [[pass]]
-    </table>
-    <table class="table">
-        <thead><tr><th>Last Name</th></tr></thead>
-        [[if not isinstance(current_user[0], str):]]
-        <tbody><tr><td>[[=current_user[0]["last_name"] ]]</td></tr></tbody>
-        [[else:]]
-        <!--No Name Given yet-->
-        [[pass]]
-    </table>
-    <table class="table">
-        <thead><tr><th>Interests</th></tr></thead>
-        <tbody><tr><td>ToDo</td></tr></tbody>
-    </table>
-    <table class="table">
-        <thead><tr><th>Notes</th></tr></thead>
-        <tbody><tr><td>Notes Go Here</td></tr></tbody>
-    </table>
+    <div class="tile is-ancestor">
+        <div class="tile is-4 is-vertical">
+            [[if not isinstance(current_user[0], str):]]
+                <h1 class="title">Hi [[=current_user[0]["first_name"] ]]</h1>
+            [[else:]]
+                <h1 class="title">Please provide your name!</h1>
+            [[pass]]
+            <a class="button is-warning m-2" href="[[=URL('edit_profile', signer=url_signer)]]">Edit Name</a>
+            <a class="button is-success m-2" href="[[=URL('addNote', signer=url_signer)]]">Add Field Note</a>
+            <div class="tile is-ancestor">
+                <div class="tile is-vertical m-4">
+                    [[for note in field_notes:]]
+                        <a href="[[=URL('view_note', note.id, signer=url_signer)]]" class="button is-outlined is-success m-2 is-fullwidth">
+                            <div class="tile is-ancestor">
+                              <div class="tile is-parent">
+                                <article class="tile is-child">
+                                  <p class="subtitle">[[=note.title]]</p>
+                                </article>
+                              </div>
+                              <div class="tile is-parent">
+                                <article class="tile is-child">
+                                  <div class="content">
+                                    <p>[[=note.created_on]]</p>
+                                  </div>
+                                </article>
+                              </div>
+                            </div>
+                        </a>
+                    [[pass]]
+                </div>
+                <div class="tile is-horizontal">
+
+                </div>
+            </div>
+        </div>
+    </div>
     [[else:]]
     <div>Profile Not Found</div>
     [[pass]]
