@@ -11,10 +11,10 @@
   </head>
   <body>
     <!-- Navigation bar -->
-    <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
         <a class="navbar-item" href="[[=URL('index')]]">
-          Home
+            Front Page
           <!-- <img class="logo" width="150" src="images/site_icon.png"> -->
         </a>
 
@@ -43,7 +43,8 @@
                       </a>
                       <div class="navbar-dropdown">
                      <a class="navbar-item" href="[[=URL('logout', signer=url_signer)]]">Logout</a>
-        <a class="navbar-item" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
+                      <a class="navbar-item" href="[[=URL('profile', signer=url_signer) ]]">Profile</a>
+                      <a class="navbar-item" href="[[=URL('admin', signer=url_signer) ]]">Admin</a>
 
                 </div>
                   </div>
