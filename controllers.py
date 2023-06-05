@@ -69,8 +69,9 @@ def index():
         add_interest_url=URL('add_interest'),
         url_signer = url_signer,
         auth = auth,
-        getfieldnotes_url=URL('get_fieldNotes'),
+        results=results,
         MAPS_API_KEY=mapkey,
+        getfieldnotes_url=URL('get_fieldNotes'),
         )
 
 @action('search')
