@@ -289,7 +289,6 @@ def get_observations():
             print("Succesful API Request")
     else:
         print("Already added those observations")
-    redirect('admin')
 
 
 @action('upload_csv')
@@ -309,11 +308,12 @@ def drop_observations():
 
 # This is the function that would be called everyday
 @action('update_database')
-@action.uses('admin.html', db)
+@action.uses('admin.html', db, url_signer.verify())
 def update_database():
     get_observations()  # Grab todays observations
     drop_old_observations(10)  # Remove 10 day old observations
     print("Database Updated")
+    redirect(URL('admin', signer=url_signer))
 
 
 @action('grab_observations')
