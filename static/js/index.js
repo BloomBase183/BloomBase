@@ -74,6 +74,10 @@ let init = (app) =>{
     clicked_observation: null,
     filterinterests: false,
     notes: [],
+<<<<<<< HEAD
+=======
+
+>>>>>>> 734cdafacc0ad45f51cb9454f8a1f8beaa1a86ab
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -82,8 +86,11 @@ let init = (app) =>{
     clear_search: app.clear_search,
     show_observation: app.show_observation,
     interonly: app.interonly,
+<<<<<<< HEAD
     popup: app.popup,
     depop: app.depop,
+=======
+>>>>>>> 734cdafacc0ad45f51cb9454f8a1f8beaa1a86ab
   };
 
   app.vue = new Vue({

@@ -81,7 +81,9 @@ def search():
                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
                     (db.observations_na.common_name.contains(user_input, all=True)) |
                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
+
     return dict(search_results=search_results.as_list())
+
 
 
 
@@ -125,7 +127,6 @@ def addNote():
         url_signer=url_signer,
         auth=auth,
     )
-
 
 
 
