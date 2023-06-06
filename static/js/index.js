@@ -9,7 +9,14 @@ let init = (app) =>{
     a.map((e) => {e._idx = k++;});
     return a;
 };
-
+  app.popup = (obs) =>{
+    console.log(obs);
+    //Put the popup code in here
+    app.vue.clicked_observation = obs;
+  }
+  app.depop = () => {
+    app.vue.clicked_observation = null;
+  };
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -52,15 +59,21 @@ let init = (app) =>{
   };
 
   app.clear_search = function () {
+    console.log("clicked")
     this.query = "";
     app.vue.search_results = [];
   };
 
   app.data ={
     observations: [],
+    markers: [],
+    currentMarkers: [],
+    map,
     search_results: [],
     query: "",
     clicked_observation: null,
+    filterinterests: false,
+    notes: [],
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -68,7 +81,11 @@ let init = (app) =>{
     add_interest: app.add_interest,
     clear_search: app.clear_search,
     show_observation: app.show_observation,
+    interonly: app.interonly,
+    popup: app.popup,
+    depop: app.depop,
   };
+
   app.vue = new Vue({
     el: "#vue-target",
     data: app.data,
@@ -78,13 +95,20 @@ let init = (app) =>{
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
     // const { MarkerClusterer} = await google.maps.importLibrary("markerClusterer");
-    map = new Map(document.getElementById("map"), {
+    
+    const map = new Map(document.getElementById("map"), {
       center: { lat: 37.0902, lng: -100},
-      zoom: 5,
+      zoom: 10,
       streetViewControl: false,
       mapId: 'MainMap'
     });
-    
+    app.data.map = map
+    const map2 = new Map(document.getElementById("map2"), {
+      center: { lat: 37.0902, lng: -100},
+      zoom: 10,
+      streetViewControl: false,
+      mapId: 'FnoteMap'
+    });
     console.log("mapping")
     infoWindow = new google.maps.InfoWindow();
    {
@@ -102,6 +126,8 @@ let init = (app) =>{
             infoWindow.open(map);
             map.setCenter(pos);
             map.setZoom(10);
+            map2.setCenter(pos);
+            map2.setZoom(10);
           },
           () => {
             handleLocationError(true, infoWindow, map.getCenter());
@@ -112,27 +138,86 @@ let init = (app) =>{
       }
     };
     console.log("waiting points")
-    await axios.get(observations_url)
-    .then(function (r) {
-      app.vue.observations = r.data.observations
- })
 
+console.log('got the points')
   // console.log(app.vue.observations)
-  const markers =  app.vue.observations.map(obs => {
-    const marker = new google.maps.Marker({
-      position: { lat: obs['latitude'], lng: obs['longitude']},
-      map: map,
-    });
-    marker.addListener("click", () => {
-      infoWindow.setContent(obs['common_name']);
-      infoWindow.open(map, marker);
-    });
-    return marker;
-   });
 
-   const markerCluster = new markerClusterer.MarkerClusterer({ markers, map });
+  let markers = []
+  let markers2 = []
+  // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
+  let markerCluster = new markerClusterer.MarkerClusterer({ markers, map });
+  axios.get(getfieldnotes_url).then(function (r)  {
+    app.data.notes = r.data.field_notes
+    markers2 =  app.vue.notes.map(obs => {
+      console.log(obs)
+      const marker2 = new google.maps.Marker({
+        position: { lat: obs['latitude'], lng: obs['longitude']},
+        map: map2,
+      });
+      marker2.addListener("gmp-click", () => {
+        infoWindow.open(map2, marker2);
+        app.fnotepopup(obs);
+      });
+      // markerCluster.addMarkers([marker]);
+      return marker2;
+  })
+  // markers.splice(0,markers.length)
+  });
+  //  markerCluster.clearMarkers();
+   google.maps.event.addListener(map, "idle", () => {
+    // 
+    // markerCluster.clearMarkers();
+    // markerCluster.clearMarkers();
+    // markers.splice(0,markers.length)
+    console.log("remap")
+    markerCluster.clearMarkers();
+    let bounds = map.getBounds()
+    let ne = bounds.getNorthEast();
+    let sw = bounds.getSouthWest();
+    axios.get(observations_url, {params: {
+      lat_max: ne.lat(), lat_min: sw.lat(),
+      lng_min: sw.lng(), lng_max: ne.lng(), filter: app.data.filterinterests,
+    }})
+    .then(function (r)  {
+      markerCluster.clearMarkers();
+      app.vue.observations = r.data.observations
+      markers =  app.vue.observations.map(obs => {
+        const marker = new google.maps.Marker({
+          position: { lat: obs['latitude'], lng: obs['longitude']},
+          map: map,
+        });
+        marker.addListener("gmp-click", () => {
+          infoWindow.setContent(obs['common_name']);
+          infoWindow.open(map, marker);
+          app.popup(obs);
+        });
+        // markerCluster.addMarkers([marker]);
+        return marker;
+    })
+    // markers.splice(0,markers.length)
+    markerCluster.addMarkers(markers);
 
-  console.log("done obs")
+
+    
+  });
+  
+    // hi = bnds
+    // var ne = bounds.getNorthEast();
+    // var sw = bounds.getSouthWest();
+//     await axios.get(observations_url, {params: {lax: , lam: , lox:, lom:}})
+//     .then(function (r) {
+//       app.vue.observations = r.data.observations
+//  })
+    // console.log(ne)
+    // console.log(sw)
+    console.log(map.getBounds())
+
+    // markerClu.addMarkers(markers);
+
+    // markerCluster.addMarkers(markers);
+
+  })
+  // console.log("done obs")
     
   };
   
@@ -147,6 +232,10 @@ let init = (app) =>{
   };
   app.init()
 };
-
+app.interonly = function() {
+  console.log(app.data.filterinterests)
+  app.data.map.setZoom(app.data.map.getZoom());
+  app.data.filterinterests = !app.data.filterinterests;
+};
 
 init(app);

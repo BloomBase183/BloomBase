@@ -9,7 +9,8 @@ from pydal.validators import *
 
 def get_user_email():
     return auth.current_user.get('email') if auth.current_user else None
-
+def get_userID():
+    return auth.current_user.get('id') if auth.current_user else None
 
 def get_time():
     return datetime.datetime.utcnow()
@@ -29,6 +30,7 @@ db.define_table(
     Field('taxon_id', 'integer')
 )
 
+
 db.define_table(
     'users',
     Field('user_email', default=get_user_email),
@@ -36,11 +38,15 @@ db.define_table(
     Field('last_name', 'string', default=None, requires=IS_NOT_EMPTY()),
 )
 
+
 db.define_table(
     'field_notes',
+    Field('title', requires=IS_NOT_EMPTY()),
     Field('iNat_url'),
     Field('notes', 'text'),
     Field('location', 'text'),
+    Field('latitude', 'double'),
+    Field('longitude', 'double'),
     Field('user_email', default=get_user_email),
     Field('created_on', 'datetime', default=get_time),
 )
@@ -74,19 +80,19 @@ db.commit()
 
 
 # create a function that makes test field_notes
-'''
-def make_test_field_notes(num_field_notes):
-    print("Adding", num_field_notes, "field notes.")
-    for i in range(num_field_notes):
-        note = dict(
-            iNat_url='https://www.inaturalist.org/observations/12345678',
-            notes='This is a test note.',
-            location='This is a test location.',
-        )
-        auth.register(note, send=False)
-    db.commit()
 
+# def make_test_field_notes(num_field_notes):
+#     print("Adding", num_field_notes, "field notes.")
+#     for i in range(num_field_notes):
+#         note = dict(
+#             iNat_url='https://www.inaturalist.org/observations/12345678',
+#             notes='This is a test note.',
+#             location='This is a test location.',
+#         )
+#         auth.register(note, send=False)
+#     db.commit()
+#
+#
+# make_test_field_notes(5)
 
-make_test_field_notes(5)
-'''
 
