@@ -71,6 +71,7 @@ def index():
         results=results,
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
+        field_notes_url=URL('fnote'),
     )
 
 @action('search')
@@ -243,6 +244,28 @@ def add_interest(user_id=None):
         redirect(URL('index'))
     return dict(form=form)
 
+# Func returns a list a field notes for the 
+# corresponding observation
+@action('fnote', method=["POST"])
+@action.uses(db, url_signer, auth)
+def fnote():
+    observation = request.params.get("observation")
+    observation_url = observation.get("url")
+    
+    print(observation_url)
+    print("we are in here")
+    species_exist = db(db.observations_na.id == observation.get("id")).select().first()
+    if species_exist is None:
+        print("species is not in the database")
+        return []
+
+    field_notes = db(db.field_notes.iNat_url == f'"{observation_url}"').select(limitby=(0,15), orderby=~db.field_notes.created_on)
+
+    for note in field_notes:
+        note.created_on = format_timestamp(note.created_on)
+
+    return dict(field_notes=field_notes)
+
 
 # def add_interest(user_id = None):
 #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
@@ -394,3 +417,29 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Succesfully Added CSV to database")
+
+# format created_on field fnotes
+def format_timestamp(timestamp):
+
+    current_time = datetime.datetime.utcnow()
+    time_difference = current_time - timestamp
+
+    minutes = time_difference.seconds // 60
+    hours = minutes // 60
+    days = time_difference.days
+
+    if days > 0:
+        formatted_time = timestamp.strftime("%Y-%m-%d")
+    else:
+        if hours == 1:
+            formatted_time = f"{hours} hour ago" 
+        elif hours > 0:
+            formatted_time = f"{hours} hours ago"
+        elif minutes == 1:
+            formatted_time = f"{minutes} minute ago"
+        elif minutes > 0:
+            formatted_time = f"{minutes} minutes ago"
+        else:
+            formatted_time = "Just now"
+
+    return formatted_time

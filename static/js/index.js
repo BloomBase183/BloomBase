@@ -13,10 +13,26 @@ let init = (app) =>{
     console.log(obs);
     //Put the popup code in here
     app.vue.clicked_observation = obs;
+    app.fnote(obs);
   }
   app.depop = () => {
     app.vue.clicked_observation = null;
+    app.vue.notes = [];
   };
+
+  //function for grabbing field notes for 
+  //clicked observation
+  app.fnote = function (obs) {
+    axios.post(field_note_url, {observation: obs})
+      .then(response => {
+        app.vue.notes = response.data.field_notes;
+        console.log('matching field notes:', app.vue.notes);
+      })
+      .catch(error => {
+        console.error('Failed to retrieve notes', error);
+      });
+  };
+
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -74,10 +90,6 @@ let init = (app) =>{
     clicked_observation: null,
     filterinterests: false,
     notes: [],
-<<<<<<< HEAD
-=======
-
->>>>>>> 734cdafacc0ad45f51cb9454f8a1f8beaa1a86ab
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -86,11 +98,9 @@ let init = (app) =>{
     clear_search: app.clear_search,
     show_observation: app.show_observation,
     interonly: app.interonly,
-<<<<<<< HEAD
     popup: app.popup,
     depop: app.depop,
-=======
->>>>>>> 734cdafacc0ad45f51cb9454f8a1f8beaa1a86ab
+    fnote: app.fnote,
   };
 
   app.vue = new Vue({
@@ -196,7 +206,7 @@ console.log('got the points')
         marker.addListener("gmp-click", () => {
           infoWindow.setContent(obs['common_name']);
           infoWindow.open(map, marker);
-          app.popup(obs);
+          //app.popup(obs);
         });
         // markerCluster.addMarkers([marker]);
         return marker;
