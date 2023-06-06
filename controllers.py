@@ -29,32 +29,49 @@ import csv
 from py4web import action, request, abort, redirect, URL, Field
 from py4web.utils.form import Form, FormStyleBulma
 from py4web.utils.url_signer import URLSigner
-from .models import get_user_email
+from .models import get_user_email, get_userID
 from .common import db, session, T, cache, auth, signed_url, Field
 from .settings import APP_FOLDER
 import os
+import json
 import datetime
-
+JSON_FILE = os.path.join(APP_FOLDER, "private", "keys.json")
 import requests
-
 
 from .email_auth import EmailAuth
 
 url_signer = URLSigner(session)
+
+
 # auth = EmailAuth(session, url_signer)
 
 
 @action('index')
 @action.uses('index.html', db, session, url_signer, auth)
 def index():
+    # Section is for the searchBar component
+    f = open(JSON_FILE)
+
+    rows = json.load(f)
+    mapkey = rows[0].get('maps')
+    user_input = request.params.get('user_input')
+    if user_input == "" or user_input is None:
+        results = db(db.observations_na).select(limitby=(0,10))
+    else:
+        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
+                (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                (db.observations_na.common_name.contains(user_input, all=True)) |
+                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     return dict(
-        #results=results, 
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
         add_interest_url=URL('add_interest'),
         url_signer = url_signer,
-        auth = auth
-        )
+        auth = auth,
+        results=results,
+        MAPS_API_KEY=mapkey,
+        getfieldnotes_url=URL('get_fieldNotes'),
+    )
 
 @action('search')
 @action.uses(db)
@@ -64,50 +81,71 @@ def search():
                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
                     (db.observations_na.common_name.contains(user_input, all=True)) |
                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
-    return dict(search_results=search_results.as_list())
+    return dict(search_results=search_results)
 
 
 
-##MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS##
+## MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS ##
 @action('admin')
-@action.uses('admin.html', db)
+@action.uses('admin.html', db, auth.enforce(), url_signer.verify(), session)
 def admin():
-    first_ten = db(db.observations_na).select(limitby=(0, 10))
-    return dict(first_ten=first_ten)
+    return dict(
+        url_signer=url_signer,
+        auth=auth
+        )
 
 
 @action('fieldNotes')
-@action.uses('fieldNotes.html', db, auth)
+@action.uses('fieldNotes.html', db, url_signer, auth)
 def fieldNotes():
     # access all field notes associated with the current user email
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
     return dict(field_notes=field_notes)
 
 
+@action('get_fieldNotes')
+@action.uses(db, url_signer, auth)
+def fieldNotes():
+    # access all field notes associated with the current user email
+    print("gettinfnote")
+    field_notes = db(db.field_notes.user_email == get_user_email()).select()
+    print(field_notes)
+    return dict(field_notes=field_notes)
+
 @action('addNote', method=["GET", "POST"])
-@action.uses('addNote.html', db, auth)
+@action.uses('addNote.html', db, auth.enforce(), url_signer.verify(), session)
 def addNote():
     # insert form, no record in database
-    form=Form(db.field_notes, formstyle=FormStyleBulma)
+    form = Form(db.field_notes, formstyle=FormStyleBulma)
     if form.accepted:
-        redirect(URL('fieldNotes'))
+        redirect(URL('profile'))
     # if this is a get request, or a post but not accepted = with error
-    return dict(form=form)
+    return dict(
+        form=form,
+        url_signer=url_signer,
+        auth=auth,
+    )
 
 
-@action('viewNote/<field_note_id:int>', method=["GET", "POST"])
-@action.uses('viewNote.html', db, auth)
-def viewNote(field_note_id=None):
+
+@action('view_note/<field_note_id:int>', method=["GET", "POST"])
+@action.uses('view_note.html', db, auth.enforce(), url_signer.verify(), session)
+def view_note(field_note_id=None):
     assert field_note_id is not None
     f = db.field_notes[field_note_id]
     if f is None:
         # Nothing found to be edited!
-        redirect(URL('fieldNotes'))
+        redirect(URL('profile'))
     form = Form(db.field_notes, record=f, deletable=False, formstyle=FormStyleBulma)
     if form.accepted:
-        redirect(URL('fieldNotes'))
+        redirect(URL('profile'))
     # if this is a get request, or a post but not accepted = with error
-    return dict(form=form)
+    return dict(
+        form=form,
+        url_signer=url_signer,
+        auth=auth,
+    )
+
 
 @action('add_interest', method=["POST"])
 @action.uses(db, auth)
@@ -118,10 +156,10 @@ def add_interest():
     # Checking if species is in database
     species_exist = db(db.observations_na.id == species_id).select().first()
     # Checking if species is already added as an interest from user
-    in_interest = db((db.interests.user_email == get_user_email()) & 
-                     #(db.interests.species_id == species_id) &
+    in_interest = db((db.interests.user_email == get_user_email()) &
+                     # (db.interests.species_id == species_id) &
                      (db.interests.species_name == species_name)).select().first()
-    
+
     # Species already in interest or not in updated db
     if species_exist is None:
         print("species doesn't exist")
@@ -129,7 +167,7 @@ def add_interest():
     if in_interest is not None:
         print("already added")
         return 'false'
-    
+
     # Adding interest into users table
     db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name)
     print("added interest")
@@ -139,65 +177,71 @@ def add_interest():
 @action('profile')
 @action.uses('profile.html', db, auth, auth.enforce(), url_signer.verify(), session)
 def profile():
-    if  len(db(db.users.user_email == get_user_email()).select()) > 0:
-        #checks if the user exists in the database. If so then take their entry for the user field, otherwise just take their email
+    if len(db(db.users.user_email == get_user_email()).select()) > 0:
+        # checks if the user exists in the database. If so then take their entry for the user field, otherwise just take their email
         user = db(db.users.user_email == get_user_email()).select()
     else:
         user = [session.get("_user_email")]
     if user is None:
         redirect(URL('index'))
-    #interests = db(db.interests.user_id == auth.current_user.get('id')).select()
+    # interests = db(db.interests.user_id == auth.current_user.get('id')).select()
+    field_notes = db(db.field_notes.user_email == get_user_email()).select()
     return dict(
-        current_user = user,
-        #interests are empty for now
-        interests = [],
-        url_signer = url_signer,
-        auth = auth
+        current_user=user,
+        field_notes=field_notes,
+        # interests are empty for now
+        interests=[],
+        url_signer=url_signer,
+        auth=auth
     )
 
 
 @action('create_profile', method=["GET", "POST"])
 @action.uses('create_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def create_profile():
-    #creates an entry into the database, currently only associated with the name fields
+    # creates an entry into the database, currently only associated with the name fields
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
-        #don't have an account associated with the email
+        # don't have an account associated with the email
         form = Form([Field('first_name'), Field('last_name')], csrf_session=session, formstyle=FormStyleBulma)
         if form.accepted:
             db.users.insert(first_name=form.vars["first_name"], last_name=form.vars["last_name"])
             redirect(URL('profile', signer=url_signer))
-        return dict(form=form, url_signer = url_signer, auth = auth)
+        return dict(form=form, url_signer=url_signer, auth=auth)
     else:
-        #The user already has an existing profile
+        # The user already has an existing profile
         redirect(URL('index'))
 
 
 @action('edit_profile', method=["GET", "POST"])
 @action.uses('edit_profile.html', db, auth.enforce(), url_signer.verify(), session)
 def edit_profile():
-    #currently only works with the name fields
+    # currently only works with the name fields
     user = db(db.users.user_email == get_user_email()).select()
     if len(user) < 1:
-        #user not found, so we instead make a new database entry for them
+        # user not found, so we instead make a new database entry for them
         redirect(URL('create_profile', signer=url_signer))
     else:
         form = Form(db.users, record=user[0], deletable=False, csrf_session=session, formstyle=FormStyleBulma)
         if form.accepted:
             redirect(URL('profile', signer=url_signer))
-        return dict(form=form, url_signer = url_signer, auth = auth)
+        return dict(form=form, url_signer=url_signer, auth=auth)
 
 
 @action('add_interest/<user_id:int>', method=["GET", "POST"])
 @action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
-def add_interest(user_id = None):
+def add_interest(user_id=None):
     assert user_id is not None
-    form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session, formstyle=FormStyleBulma)
+    form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session,
+                formstyle=FormStyleBulma)
     if form.accepted:
-      db.interests.insert(interest_category=form.vars["interest_category"], interest_name=form.vars["Name"], weight=form.vars["Weight"], user_id = user_id)
-      redirect(URL('index'))
+        db.interests.insert(interest_category=form.vars["interest_category"], interest_name=form.vars["Name"],
+                            weight=form.vars["Weight"], user_id=user_id)
+        redirect(URL('index'))
     return dict(form=form)
-#def add_interest(user_id = None):
+
+
+# def add_interest(user_id = None):
 #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
 #    if form.accepted:
 #      redirect(URL('index'))
@@ -209,9 +253,6 @@ def delete_contact(contact_id=None):
     assert contact_id is not None
     db(db.interests.id == contact_id).delete()
     redirect(URL('index'))
-
-
-
 
 
 @action('get_observations')
@@ -264,7 +305,7 @@ def get_observations():
 
 
 @action('upload_csv')
-@action.uses('admin.html', db)
+@action.uses('admin.html', db, auth.enforce(), url_signer.verify(), session)
 def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
@@ -280,6 +321,7 @@ def drop_observations():
 
 # This is the function that would be called everyday
 @action('update_database')
+@action.uses('admin.html', db)
 def update_database():
     get_observations()  # Grab todays observations
     drop_old_observations(10)  # Remove 10 day old observations
@@ -287,9 +329,24 @@ def update_database():
 
 
 @action('grab_observations')
-@action.uses(db)
+@action.uses(db, url_signer, auth)
 def grab_observations():
-    a = db(db.observations_na).select().as_list()
+    latmax = request.params.get('lat_max')
+    longmax = request.params.get('lng_max')
+    latmin = request.params.get('lat_min')
+    longmin = request.params.get('lng_min')
+    filterok = request.params.get('filter')
+    uid = get_userID()
+    if(filterok == "true"):
+        ints = db(db.interests.user_id == uid).select()
+        ints = [x.get('species_name') for x in ints]
+        ints.append('Prostrate Capeweed')
+    
+    print(longmax, longmin, latmax, latmin)
+    query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
+    a = db(query).select().as_list()
+    if(filterok == "true"):
+        a = [z for z in a if (z.get('common_name') in ints)]
     # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))
@@ -334,4 +391,3 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Succesfully Added CSV to database")
-
