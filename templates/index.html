@@ -61,6 +61,26 @@
     </div>
 </div>
   
+<div class = "column is-4">
+  <div class ="box">
+    <div>How was your experience with the observation? <br> (0: Observation wasn't there 10: There was so much blooming)<div>
+  <div class="slidecontainer">
+  <input type="range" min="0" max="10" value="0" class="slider" id="obSlider">
+  <span id="val"></span>
+</div>
+
+<script>
+var slider = document.getElementById("obSlider");
+var output = document.getElementById("val");
+output.innerHTML = slider.value;
+
+slider.oninput = function() {
+  output.innerHTML = this.value;
+}
+</script>
+  </div>
+  </div>
+</div>
 
 [[block page_scripts]]
 <script>
