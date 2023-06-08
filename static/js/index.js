@@ -61,10 +61,12 @@ let init = (app) =>{
     
   };
 
-  app.post_note = function (noteTitle, noteContent, iNat_url, long, lat) {
-    axios.post(post_note_url, {noteTitle: noteTitle, noteContent: noteContent, iNat_url: iNat_url, long: long, lat: lat }) // Corrected variable name
+  app.post_note = function (iNat_url, long, lat,obs) {
+    var noteTitle = document.getElementById("noteTitle").value;
+    var noteContent = document.getElementById("noteContent").value;
+    axios.post(post_note_url, {title: noteTitle, noteContent: noteContent, iNat_url: iNat_url, long: long, lat: lat }) // Corrected variable name
       .then(response => {
-        app.fnote();
+        app.fnote(obs);
       })
       .catch(error => {
         // Handle any errors

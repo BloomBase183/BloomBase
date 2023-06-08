@@ -113,7 +113,7 @@ def fieldNotes():
     # access all field notes associated with the current user email
     print("gettinfnote")
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
-    print(field_notes)
+    
     return dict(field_notes=field_notes)
 
 @action('add_note', method=["GET", "POST"])
@@ -123,8 +123,9 @@ def add_note():
     iNat_url = request.params.get('iNat_url')
     long = request.params.get('long')
     lat = request.params.get('lat')
-    print(content, iNat_url, long, lat)
-    db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat)
+    title = request.params.get('title')
+    #print(content, iNat_url, long, lat)
+    db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat, title=title)
     return "Added note!"
     # if get_userID() is None: #if the user isnt logged in.
     #     redirect(URL('index'))
@@ -262,7 +263,7 @@ def fnote():
     observation = request.params.get("observation")
     observation_url = observation.get("url")
     
-    print(observation_url)
+    
     print("we are in here")
     species_exist = db(db.observations_na.id == observation.get("id")).select().first()
     if species_exist is None:
@@ -378,7 +379,7 @@ def grab_observations():
         ints = [x.get('species_name') for x in ints]
         ints.append('Prostrate Capeweed')
     
-    print(longmax, longmin, latmax, latmin)
+    #print(longmax, longmin, latmax, latmin)
     query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
     if(filterok == "true"):
@@ -387,7 +388,7 @@ def grab_observations():
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
-    print(a)
+    #print(a)
     return dict(
         observations=a
     )
