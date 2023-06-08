@@ -12,7 +12,28 @@ let init = (app) =>{
   app.popup = (obs) =>{
     console.log(obs);
     //Put the popup code in here
+    app.vue.clicked_observation = obs;
+    console.log(obs)
+    app.fnote(obs);
   }
+  app.depop = () => {
+    app.vue.clicked_observation = null;
+    app.vue.notes = [];
+  };
+
+  //function for grabbing field notes for 
+  //clicked observation
+  app.fnote = function (obs) {
+    axios.post(field_note_url, {observation: obs})
+      .then(response => {
+        app.vue.notes = response.data.field_notes;
+        console.log('matching field notes:', app.vue.notes);
+      })
+      .catch(error => {
+        console.error('Failed to retrieve notes', error);
+      });
+  };
+
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -40,6 +61,11 @@ let init = (app) =>{
     
   };
 
+  app.show_observation = function (observation) {
+    console.log('clicked on observation:', observation);
+    this.clicked_observation = observation;
+  };
+
   app.add_interest = function (result) {
     axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name}).then(response => {
       console.log('Interest added successfully');
@@ -62,6 +88,7 @@ let init = (app) =>{
     map,
     search_results: [],
     query: "",
+    clicked_observation: null,
     filterinterests: false,
     notes: [],
   };
@@ -70,7 +97,11 @@ let init = (app) =>{
     search: app.search,
     add_interest: app.add_interest,
     clear_search: app.clear_search,
+    show_observation: app.show_observation,
     interonly: app.interonly,
+    popup: app.popup,
+    depop: app.depop,
+    fnote: app.fnote,
   };
 
   app.vue = new Vue({
@@ -129,10 +160,12 @@ let init = (app) =>{
 console.log('got the points')
   // console.log(app.vue.observations)
 
-  let markers = []
-  let markers2 = []
+  let markers = [];
+  let markers2 = [];
+  let empty_markers = [];
   // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
-  let markerCluster = new markerClusterer.MarkerClusterer({ markers, map });
+  
+  // markerCluster.addMarkers(markers)
   axios.get(getfieldnotes_url).then(function (r)  {
     app.data.notes = r.data.field_notes
     markers2 =  app.vue.notes.map(obs => {
@@ -151,13 +184,14 @@ console.log('got the points')
   // markers.splice(0,markers.length)
   });
   //  markerCluster.clearMarkers();
+  let markerCluster = new markerClusterer.MarkerClusterer({ empty_markers, map });
    google.maps.event.addListener(map, "idle", () => {
     // 
     // markerCluster.clearMarkers();
     // markerCluster.clearMarkers();
     // markers.splice(0,markers.length)
     console.log("remap")
-    markerCluster.clearMarkers();
+    // markerCluster.clearMarkers();
     let bounds = map.getBounds()
     let ne = bounds.getNorthEast();
     let sw = bounds.getSouthWest();
@@ -166,24 +200,36 @@ console.log('got the points')
       lng_min: sw.lng(), lng_max: ne.lng(), filter: app.data.filterinterests,
     }})
     .then(function (r)  {
-      markerCluster.clearMarkers();
+      // markerCluster.clearMarkers();
+      app.vue.observations = []
       app.vue.observations = r.data.observations
+      // console.log(app.vue.observations)
       markers =  app.vue.observations.map(obs => {
         const marker = new google.maps.Marker({
           position: { lat: obs['latitude'], lng: obs['longitude']},
           map: map,
         });
-        marker.addListener("gmp-click", () => {
-          infoWindow.setContent(obs['common_name']);
-          infoWindow.open(map, marker);
+        // console.log(obs)
+        marker.addListener("click", () => {
+          // infoWindow.setContent(obs['common_name']);
+          // infoWindow.open(map, marker);
+          // console.log(obs)
+          // console.log('clicked')
           app.popup(obs);
         });
         // markerCluster.addMarkers([marker]);
         return marker;
     })
     // markers.splice(0,markers.length)
-    markerCluster.addMarkers(markers);
+    // markerCluster.addMarkers(markers);
 
+    // markerCluster.clearMarkers();
+    console.log("log")
+    console.log(markerCluster.markers.length)
+    // markerCluster.markers.splice(0,markerCluster.markers.length)
+    markerCluster.addMarkers(markers);
+    console.log(app.vue.observations)
+    console.log(markerCluster.markers.length)
 
     
   });

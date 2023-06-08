@@ -6,6 +6,14 @@
   }
 </style>
 
+<style>
+  .box:not(.modal-box):hover {
+  background-color: lightblue; /* Customize the highlight color */
+  border: 1px solid lightblue; /* Customize the border color */
+  }
+</style>
+
+
 
 
 <div class="section" id="vue-target">
@@ -24,9 +32,10 @@
     </div>
   <!--Section for Search bar results -->
   </div>
+  
   <div class="field" v-for="result in search_results">
     <div class="column is-7">
-      <div class="box">
+      <div class="box" @click="popup(result)">
         <div class="media">
           <div class="media-left">
             <figure class="image">
@@ -38,11 +47,89 @@
             <p class="title is-6"><i>{{result.scientific_name}}</i></p>
           </div>
           <div class="media-right is-centered">
-            <button class="button is-hoverable is-centered" @click="add_interest(result)">Add Interest</button>
+            <button class="button is-hoverable is-centered" @click.stop="add_interest(result)">Add Interest</button>
           </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Section for pop-up-->
+  <div v-if="clicked_observation" class="modal is-active">
+    <div class="modal-background" @click="depop"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title is-size-3">{{ clicked_observation.common_name }}
+          <span class="is-size-6"> ({{ clicked_observation.scientific_name }})</span>
+        </p>
+        <button class="delete" aria-label="close" @click="depop"></button>
+      </header>
+      <section class="modal-card-body">
+        <div class="columns">
+          <div class="column is-6">
+            <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 326px; width: 312px;"/>
+          </div>
+          <div class="column is-6">
+            <div v-if="notes.length > 0" class="box modal-box" style="width: 300px; height: 150px;">
+              <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
+              <p class="is-size-5 is-flex">{{ notes[0].location }}</p>
+            </div>
+            <div v-else class="box modal-box" style="width: 300px; height: 150px;">
+              <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
+            </div>
+            <div v-if="notes.length > 0" class="box modal-box" style="width: 300px; height: 150px;">
+              <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
+              <p class="is-size-6 is-flex">{{notes[0].iNat_url}}</p>
+            </div>
+            <div v-else class="box modal-box" style="width: 300px; height: 150px;">
+              <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
+            </div>
+          </div>
+        </div>
+        <p class="is-size-3"> Field Notes</p>
+        <div v-if="notes.length <= 0">
+          <p class="is-size-5">No current field notes for this observation.</p>
+        </div>
+        <div v-else>
+          <div class="box modal-box" v-for="note in notes">
+            <nav class="level is-mobile">
+              <div class="level-left">
+                <span class="is-size-5">{{note.title}}</span>
+                
+              </div>
+              <div class="level-right">
+                <span class="level-item">
+                  {{note.created_on}}
+                </span>
+              </div>
+            </nav>
+            <div class="content">
+              {{note.notes}} 
+            </div>
+            <nav class="level is-mobile">
+              <div class="level-left">
+                <a class="level-item" aria-label="reply">
+                  <span class="icon is-small">
+                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                  </span>
+                  <span class="ml-1">4</span>
+                </a>
+                <a class="level-item" aria-label="retweet">
+                  <span class="icon is-small">
+                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+                  </span>
+                  <span class="ml-1">1</span>
+                </a>
+              </div>
+            </nav>
+          </div>
+        </div>
+        
+      </section>
+        
+        <!-- Include additional information as needed -->
+    </div>
+    
   </div>
     <!--Section for Goolge Maps -->
     <link rel="stylesheet" type="text/css" href="css/style.css" />
@@ -59,6 +146,7 @@
         <div class="has-text-weight-bold is-size-3">TESTINGG</div>
       </div>
     </div>
+
 </div>
   
 
@@ -69,6 +157,7 @@
   let add_interest_url = "[[=XML(add_interest_url)]]"
   let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
   let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
+  let field_note_url = "[[=XML(field_notes_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
