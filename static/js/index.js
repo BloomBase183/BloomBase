@@ -49,6 +49,15 @@ let init = (app) =>{
     });
   };
 
+  app.rate_density = function (rating){
+    axios.post(rate_density_url, {r: rating}).then(response => {
+      console.log('Density added successfully');
+    })
+    .catch(error => {
+      console.error('Failed to rate observation Density', error)
+    }); 
+  }
+
   app.clear_search = function () {
     console.log("clicked")
     this.query = "";
@@ -64,6 +73,7 @@ let init = (app) =>{
     query: "",
     filterinterests: false,
     notes: [],
+    density: 0,
   };
   app.methods = {
     get_observations: app.get_observations,
@@ -71,6 +81,7 @@ let init = (app) =>{
     add_interest: app.add_interest,
     clear_search: app.clear_search,
     interonly: app.interonly,
+    rate_density: app.rate_density,
   };
 
   app.vue = new Vue({

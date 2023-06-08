@@ -71,6 +71,7 @@ def index():
         results=results,
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
+        rate_density_url=URL('rate_density'),
     )
 
 @action('search')
@@ -238,6 +239,13 @@ def add_interest(user_id=None):
         redirect(URL('index'))
     return dict(form=form)
 
+@action("rate_density", method=["GET", "POST"])
+@action.uses(db, url_signer.verify(), session)
+def rate_density():
+    # Take the users rating of an observation and submit it
+    rating = int(request.params.get('r'))
+    db.observation_densities.insert(observation = "String", observation_rating = rating)
+    return "ok"
 
 # def add_interest(user_id = None):
 #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 

@@ -66,6 +66,14 @@ db.define_table(
     Field('interest_weight', 'integer', requires=IS_INT_IN_RANGE(1, 11)),
 )
 
+db.define_table(
+    'observation_densities',
+    Field('user_email', default=get_user_email),
+    Field('observation'),
+    Field('observation_rating', 'integer', default=0),
+
+)
+
 db.field_notes.user_email.readable = db.field_notes.user_email.writable = False
 db.field_notes.id.readable = db.field_notes.id.writable = False
 db.field_notes.created_on.writable = False
@@ -74,6 +82,7 @@ db.interests.id.readable = db.interests.id.writable = False
 db.users.user_email.readable = db.users.user_email.writable = False
 db.users.id.readable = db.users.id.writable = False
 db.interests.user_email.readable = db.interests.user_email.writable = False
+db.observation_densities.user_email.readable = db.observation_densities.user_email.writable = False
 
 
 db.commit()

@@ -67,6 +67,7 @@
   <div class="slidecontainer">
   <input type="range" min="0" max="10" value="0" class="slider" id="obSlider">
   <span id="val"></span>
+
 </div>
 
 <script>
@@ -77,7 +78,9 @@ output.innerHTML = slider.value;
 slider.oninput = function() {
   output.innerHTML = this.value;
 }
+
 </script>
+<p class="control"><input type="submit"  @click="rate_density('7')"  value="Submit" class="button is-link"></p>
   </div>
   </div>
 </div>
@@ -89,6 +92,7 @@ slider.oninput = function() {
   let add_interest_url = "[[=XML(add_interest_url)]]"
   let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
   let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
+  let rate_density_url = "[[=XML(rate_density_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
