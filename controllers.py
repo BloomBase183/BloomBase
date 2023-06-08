@@ -240,12 +240,13 @@ def add_interest(user_id=None):
     return dict(form=form)
 
 @action("rate_density", method=["GET", "POST"])
-@action.uses(db, url_signer.verify(), session)
+@action.uses(db, auth, url_signer.verify(), session)
 def rate_density():
     # Take the users rating of an observation and submit it
-    rating = int(request.params.get('r'))
-    db.observation_densities.insert(observation = "String", observation_rating = rating)
-    return "ok"
+    rating = int(request.params.get('rating'))
+    print(rating)
+    db.observation_densities.insert(observation = "String", user_email = "Email", observation_rating =7)
+    return dict(auth=auth)
 
 # def add_interest(user_id = None):
 #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 

@@ -50,12 +50,18 @@ let init = (app) =>{
   };
 
   app.rate_density = function (rating){
-    axios.post(rate_density_url, {r: rating}).then(response => {
+    console.log(rating);
+    axios.post(rate_density_url, {rating: rating}).then(response => {
       console.log('Density added successfully');
     })
     .catch(error => {
       console.error('Failed to rate observation Density', error)
     }); 
+  }
+
+  
+  app.test = function () {
+    console.log("test")
   }
 
   app.clear_search = function () {
@@ -82,6 +88,7 @@ let init = (app) =>{
     clear_search: app.clear_search,
     interonly: app.interonly,
     rate_density: app.rate_density,
+    test: app.test,
   };
 
   app.vue = new Vue({

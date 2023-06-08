@@ -68,9 +68,9 @@ db.define_table(
 
 db.define_table(
     'observation_densities',
-    Field('user_email', default=get_user_email),
+    Field('user_email'),
     Field('observation'),
-    Field('observation_rating', 'integer', default=0),
+    Field('observation_rating', default=0),
 
 )
 

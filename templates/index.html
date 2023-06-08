@@ -80,11 +80,11 @@ slider.oninput = function() {
 }
 
 </script>
-<p class="control"><input type="submit"  @click="rate_density('7')"  value="Submit" class="button is-link"></p>
+<input type="submit"  @click="test(7)"  value="Submit" class="button is-link">
   </div>
   </div>
 </div>
-
+<button @click="test" class="button">TESTING</button>
 [[block page_scripts]]
 <script>
   let observations_url = "[[=XML(observations_url)]]"
