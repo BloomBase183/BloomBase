@@ -377,6 +377,7 @@ def grab_observations():
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
+    print(a)
     return dict(
         observations=a
     )
