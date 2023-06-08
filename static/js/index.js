@@ -61,6 +61,17 @@ let init = (app) =>{
     
   };
 
+  app.post_note = function (noteTitle, noteContent, iNat_url, long, lat) {
+    axios.post(post_note_url, {noteTitle: noteTitle, noteContent: noteContent, iNat_url: iNat_url, long: long, lat: lat }) // Corrected variable name
+      .then(response => {
+        app.fnote();
+      })
+      .catch(error => {
+        // Handle any errors
+        console.error(error);
+      });
+  };
+
   app.show_observation = function (observation) {
     console.log('clicked on observation:', observation);
     this.clicked_observation = observation;
@@ -82,6 +93,9 @@ let init = (app) =>{
   };
 
   app.data ={
+    iNat_url: "",
+    long: "",
+    lat: "",
     observations: [],
     markers: [],
     currentMarkers: [],
@@ -91,8 +105,10 @@ let init = (app) =>{
     clicked_observation: null,
     filterinterests: false,
     notes: [],
+    noteContent: "",
   };
   app.methods = {
+    post_note: app.post_note,
     get_observations: app.get_observations,
     search: app.search,
     add_interest: app.add_interest,

@@ -72,6 +72,7 @@ def index():
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
+        post_note_url=URL('add_note', signer=url_signer),
     )
 
 @action('search')
@@ -115,19 +116,28 @@ def fieldNotes():
     print(field_notes)
     return dict(field_notes=field_notes)
 
-@action('addNote', method=["GET", "POST"])
-@action.uses('addNote.html', db, auth.enforce(), url_signer.verify(), session)
-def addNote():
+@action('add_note', method=["GET", "POST"])
+@action.uses('add_note.html', db, auth.enforce(), url_signer.verify(), session)
+def add_note():
+    content = request.params.get('noteContent')
+    iNat_url = request.params.get('iNat_url')
+    long = request.params.get('long')
+    lat = request.params.get('lat')
+    print(content, iNat_url, long, lat)
+    db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat)
+    return "Added note!"
+    # if get_userID() is None: #if the user isnt logged in.
+    #     redirect(URL('index'))
     # insert form, no record in database
-    form = Form(db.field_notes, formstyle=FormStyleBulma)
-    if form.accepted:
-        redirect(URL('profile'))
+    # form = Form(db.field_notes, formstyle=FormStyleBulma)
+    # if form.accepted:
+    #     redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
-    return dict(
-        form=form,
-        url_signer=url_signer,
-        auth=auth,
-    )
+    # return dict(
+    #     form=form,
+    #     url_signer=url_signer,
+    #     auth=auth,
+    # )
 
 
 
@@ -139,10 +149,10 @@ def view_note(field_note_id=None):
     f = db.field_notes[field_note_id]
     if f is None:
         # Nothing found to be edited!
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     form = Form(db.field_notes, record=f, deletable=False, formstyle=FormStyleBulma)
     if form.accepted:
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
     return dict(
         form=form,
