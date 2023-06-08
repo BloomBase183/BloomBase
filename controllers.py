@@ -259,7 +259,7 @@ def fnote():
         print("species is not in the database")
         return []
 
-    field_notes = db(db.field_notes.iNat_url == f'"{observation_url}"').select(limitby=(0,15), orderby=~db.field_notes.created_on)
+    field_notes = db(db.field_notes.iNat_url == observation_url).select(limitby=(0,15), orderby=~db.field_notes.created_on)
 
     for note in field_notes:
         note.created_on = format_timestamp(note.created_on)
