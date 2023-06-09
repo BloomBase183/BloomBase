@@ -49,6 +49,8 @@ db.define_table(
     Field('longitude', 'double'),
     Field('user_email', default=get_user_email),
     Field('created_on', 'datetime', default=get_time),
+    Field('like_count', 'integer', default = 0),
+    Field('dislike_count', 'integer', default = 0),
 )
 
 
@@ -62,8 +64,18 @@ db.define_table(
     Field('interest_name'),
     Field('species_id', 'integer'),
     Field('species_name'),
+    Field('scientific_name'),
+    Field('image'),
     # the weight impacts which interests are highest priority
     Field('interest_weight', 'integer', requires=IS_INT_IN_RANGE(1, 11)),
+)
+
+db.define_table(
+    'fnote_likes',
+    Field('user_email', default=get_user_email),
+    Field('field_note_id'),
+    Field('is_liked', 'boolean', default=False, migrate=True),
+    
 )
 
 db.field_notes.user_email.readable = db.field_notes.user_email.writable = False
@@ -74,6 +86,9 @@ db.interests.id.readable = db.interests.id.writable = False
 db.users.user_email.readable = db.users.user_email.writable = False
 db.users.id.readable = db.users.id.writable = False
 db.interests.user_email.readable = db.interests.user_email.writable = False
+db.fnote_likes.user_email.readable = db.fnote_likes.user_email.writable = False
+db.fnote_likes.id.readable = db.fnote_likes.id.writable = False
+
 
 
 db.commit()

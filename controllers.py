@@ -54,25 +54,24 @@ def index():
 
     rows = json.load(f)
     mapkey = rows[0].get('maps')
-    user_input = request.params.get('user_input')
-    if user_input == "" or user_input is None:
-        results = db(db.observations_na).select(limitby=(0,10))
-    else:
-        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                (db.observations_na.common_name.contains(user_input, all=True)) |
-                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     return dict(
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
         add_interest_url=URL('add_interest'),
         url_signer = url_signer,
         auth = auth,
-        results=results,
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
         post_note_url=URL('add_note', signer=url_signer),
+        interest_url=URL('interest_list'),
+        drop_interest_url=URL('drop_interest'),
+        like_post_url=URL('like_post'),
+        dislike_post_url=URL('dislike_post'),
+        update_likes_url=URL('update_likes'),
+        update_dislikes_url=URL('update_dislikes'),
+
+
     )
 
 @action('search')
@@ -163,11 +162,14 @@ def view_note(field_note_id=None):
 
 
 @action('add_interest', method=["POST"])
-@action.uses(db, auth)
+@action.uses(db, auth, url_signer)
 def add_interest():
     # Grabbing neccessary info 
     species_id = request.params.get('species_id')
     species_name = request.params.get('species_name')
+    species_image = request.params.get('species_image')
+    species_scientific_name = request.params.get('scientific_name')
+    print(species_image)
     # Checking if species is in database
     species_exist = db(db.observations_na.id == species_id).select().first()
     # Checking if species is already added as an interest from user
@@ -184,9 +186,20 @@ def add_interest():
         return 'false'
 
     # Adding interest into users table
-    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name)
+    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name, scientific_name=species_scientific_name, image=species_image)
     print("added interest")
     return 'true'
+
+@action('drop_interest', method=["POST"])
+@action.uses(db, auth, url_signer)
+def drop_interest():
+    interest_id = request.params.get('interest_id')
+    interest_email = request.params.get('user_email')
+    assert interest_id is not None
+    assert interest_email is not None
+    db((db.interests.id == interest_id) & (db.interests.user_email == interest_email)).delete()
+    print("successfully deleted interest entry")
+    return "deleted interest entry"
 
 
 @action('profile')
@@ -277,12 +290,91 @@ def fnote():
 
     return dict(field_notes=field_notes)
 
+@action('interest_list', method=["GET"])
+@action.uses(db, url_signer, auth)
+def interest_list():
+    interests = db(get_user_email() == db.interests.user_email).select()
+    return dict(interests=interests)
 
-# def add_interest(user_id = None):
-#    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
-#    if form.accepted:
-#      redirect(URL('index'))
-#    return dict(form=form)
+@action('like_post', method=["POST"])
+@action.uses(db, url_signer, auth)
+def like_post():
+    note_id = request.params.get('id')
+    print(note_id)
+    is_liked = db((db.fnote_likes.field_note_id == note_id) &
+                  (db.fnote_likes.user_email == get_user_email())).select().first()
+    
+    if is_liked is None:
+        # the field note has not been liked nor disliked by the user
+        print("added user to like db...liked field note")
+        db.fnote_likes.insert(user_email=get_user_email(), field_note_id=note_id, is_liked=True)
+        return 'true'
+    if is_liked.is_liked:
+        print("you have already liked this post")
+        return 'false'
+   
+    db((db.fnote_likes.field_note_id == note_id) & (db.fnote_likes.user_email == get_user_email())).update(is_liked=True)
+    print("updated to liked")
+    # Need to change dislike to -= 1 and like to  += 1
+    return 'updated'
+
+# Updates the like count (sometimes dislike too) in field notes
+@action('update_likes', method=["POST"])
+@action.uses(db, url_signer, auth)
+def update_likes():
+    response = request.params.get('response')
+    note = request.params.get('note')
+    note_id = note.get('id')
+    print(response)
+    if response == True:
+        print("yew")
+        db(db.field_notes.id == note_id).update(like_count=db.field_notes.like_count + 1)
+    elif response == False:
+        print("we do nothing")
+    else:
+        print("we update")
+        db(db.field_notes.id == note_id).update(like_count=db.field_notes.like_count + 1, dislike_count=db.field_notes.dislike_count - 1)
+    return
+
+@action('dislike_post', method=["POST"])
+@action.uses(db, url_signer, auth)
+def dislike_post():
+    note_id = request.params.get('id')
+    print(note_id)
+    is_disliked = db((db.fnote_likes.field_note_id == note_id) &
+                  (db.fnote_likes.user_email == get_user_email())).select().first()
+    
+    if is_disliked is None:
+        # the field note has not been liked nor disliked by the user
+        print("added user to like db...disliked field note")
+        db.fnote_likes.insert(user_email=get_user_email(), field_note_id=note_id, is_liked=False)
+        return 'true'
+    if is_disliked.is_liked == False:
+        print("you have already disliked this post")
+        return 'false'
+   
+    db((db.fnote_likes.field_note_id == note_id) & (db.fnote_likes.user_email == get_user_email())).update(is_liked=False)
+    print("updated to liked")
+    # Need to change dislike to += 1 and like to  -= 1
+    return 'updated'
+
+# Updates the dislike count (sometimes like too) in field notes
+@action('update_dislikes', method=["POST"])
+@action.uses(db, url_signer, auth)
+def update_dislikes():
+    response = request.params.get('response')
+    note = request.params.get('note')
+    note_id = note.get('id')
+    print(response)
+    if response == True:
+        print("yew dislike")
+        db(db.field_notes.id == note_id).update(dislike_count=db.field_notes.dislike_count + 1)
+    elif response == False:
+        print("we do nothing")
+    else:
+        print("we update")
+        db(db.field_notes.id == note_id).update(like_count=db.field_notes.like_count - 1, dislike_count=db.field_notes.dislike_count + 1)
+    return
 
 @action('delete_interest/<user_id:int>')
 @action.uses(db, auth.enforce(), url_signer.verify())
