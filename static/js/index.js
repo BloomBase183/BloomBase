@@ -176,7 +176,6 @@ let init = (app) =>{
       .then(r => {
       });
   };
-  };
 
   
   app.drop_interest = function (interest){
