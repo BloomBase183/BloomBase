@@ -30,7 +30,6 @@ db.define_table(
     Field('taxon_id', 'integer')
 )
 
-
 db.define_table(
     'users',
     Field('user_email', default=get_user_email),
