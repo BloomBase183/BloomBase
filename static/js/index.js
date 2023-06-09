@@ -16,6 +16,7 @@ let init = (app) =>{
     console.log(obs)
     app.fnote(obs);
   }
+
   app.depop = () => {
     app.vue.clicked_observation = null;
     app.vue.notes = [];
@@ -34,12 +35,6 @@ let init = (app) =>{
       });
   };
 
-  app.interest_list = function () {
-    axios.get(interest_url)
-      .then(function(l) {
-        app.vue.interests = l.data.interests;
-      });
-  };
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -86,19 +81,47 @@ let init = (app) =>{
     this.clicked_observation = observation;
   };
 
+  app.interest_list = function () {
+    axios.get(interest_url)
+      .then(function(l) {
+        app.vue.interests = l.data.interests;
+      });
+  };
+
+  app.toggle_interest = function (result) {
+    axios.post(
+        toggle_interest_url, {
+          species_id: result.id,
+          species_name: result.common_name,
+          scientific_name: result.scientific_name,
+          species_image: result.image_url
+        })
+    .then(response => {
+      app.interest_list();
+    })
+    .catch(error => {
+      console.error('Failed to toggle interest', error)
+    });
+  };
+
   app.add_interest = function (result) {
-    axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name, scientific_name: result.scientific_name, species_image: result.image_url})
+    axios.post(add_interest_url, {
+      species_id: result.id,
+      species_name: result.common_name,
+      scientific_name: result.scientific_name,
+      species_image: result.image_url
+    })
     .then(response => {
       console.log('Interest added successfully');
       app.interest_list();
     })
     .catch(error => {
       console.error('Failed to add interest', error)
-    });    
+    });
     //app.interest_list();
   };
 
-  
+
   app.drop_interest = function (interest){
     axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
       .then(response => {
@@ -135,6 +158,7 @@ let init = (app) =>{
     post_note: app.post_note,
     get_observations: app.get_observations,
     search: app.search,
+    toggle_interest: app.toggle_interest,
     add_interest: app.add_interest,
     clear_search: app.clear_search,
     show_observation: app.show_observation,

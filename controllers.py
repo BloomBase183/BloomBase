@@ -35,6 +35,7 @@ from .settings import APP_FOLDER
 import os
 import json
 import datetime
+
 JSON_FILE = os.path.join(APP_FOLDER, "private", "keys.json")
 import requests
 
@@ -56,39 +57,48 @@ def index():
     mapkey = rows[0].get('maps')
     user_input = request.params.get('user_input')
     if user_input == "" or user_input is None:
-        results = db(db.observations_na).select(limitby=(0,10))
+        results = db(db.observations_na).select(limitby=(0, 10))
     else:
         results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                (db.observations_na.common_name.contains(user_input, all=True)) |
-                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
+                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                     (db.observations_na.common_name.contains(user_input, all=True)) |
+                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
     return dict(
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
-        add_interest_url=URL('add_interest'),
-        url_signer = url_signer,
-        auth = auth,
+        toggle_interest_url=URL('toggle_interest'),
+        url_signer=url_signer,
+        auth=auth,
         results=results,
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
         interest_url=URL('interest_list'),
-        drop_interest_url=URL('drop_interest'),
         post_note_url=URL('add_note', signer=url_signer),
     )
 
+
 @action('search')
-@action.uses(db)
+@action.uses(db, url_signer, auth)
 def search():
     user_input = request.params.get('q')
     search_results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                    (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                    (db.observations_na.common_name.contains(user_input, all=True)) |
-                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
+                        (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                        (db.observations_na.common_name.contains(user_input, all=True)) |
+                        (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
+
+    #### MAY WANT TO CHANGE THIS TO SOME SORT OF CACHED INFORMATION SYSTEM INSTEAD #####
+
+    for result in search_results:
+        # Check if the species names exist in the interests table for the current user
+        in_interests = db((db.interests.user_email == get_user_email()) &
+                          ((db.interests.species_name == result.common_name) |
+                           (db.interests.scientific_name == result.scientific_name))).count()
+
+        # Add the 'is_added' field to the search result based on whether it is in the interests table or not
+        result['is_added'] = in_interests > 0
 
     return dict(search_results=search_results.as_list())
-
-
 
 
 ## MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS ##
@@ -98,7 +108,7 @@ def admin():
     return dict(
         url_signer=url_signer,
         auth=auth
-        )
+    )
 
 
 @action('fieldNotes')
@@ -115,8 +125,9 @@ def fieldNotes():
     # access all field notes associated with the current user email
     print("gettinfnote")
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
-    
+
     return dict(field_notes=field_notes)
+
 
 @action('add_note', method=["GET", "POST"])
 @action.uses('add_note.html', db, auth.enforce(), url_signer.verify(), session)
@@ -126,7 +137,7 @@ def add_note():
     long = request.params.get('long')
     lat = request.params.get('lat')
     title = request.params.get('title')
-    #print(content, iNat_url, long, lat)
+    # print(content, iNat_url, long, lat)
     db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat, title=title)
     return "Added note!"
     # if get_userID() is None: #if the user isnt logged in.
@@ -141,8 +152,6 @@ def add_note():
     #     url_signer=url_signer,
     #     auth=auth,
     # )
-
-
 
 
 @action('view_note/<field_note_id:int>', method=["GET", "POST"])
@@ -164,15 +173,15 @@ def view_note(field_note_id=None):
     )
 
 
-@action('add_interest', method=["POST"])
+@action('toggle_interest', method=["GET", "POST"])
 @action.uses(db, auth, url_signer)
-def add_interest():
-    # Grabbing neccessary info 
+def toggle_interest():
+    # Grabbing neccessary info
     species_id = request.params.get('species_id')
     species_name = request.params.get('species_name')
     species_image = request.params.get('species_image')
     species_scientific_name = request.params.get('scientific_name')
-    print(species_image)
+
     # Checking if species is in database
     species_exist = db(db.observations_na.id == species_id).select().first()
     # Checking if species is already added as an interest from user
@@ -180,29 +189,24 @@ def add_interest():
                      # (db.interests.species_id == species_id) &
                      (db.interests.species_name == species_name)).select().first()
 
-    # Species already in interest or not in updated db
+    # Species not in updated db
     if species_exist is None:
         print("species doesn't exist")
-        return 'false'
-    if in_interest is not None:
-        print("already added")
-        return 'false'
+        return 'bad'
 
-    # Adding interest into users table
-    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name, scientific_name=species_scientific_name, image=species_image)
-    print("added interest")
-    return 'true'
+    # Check if species already added as interest
+    if in_interest:
+        drop_interest(species_id, get_user_email())
+        print("dropped interest")
+    else:
+        db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name,
+                            scientific_name=species_scientific_name, image=species_image)
+        print("added interest")
+    return 'ok'
 
-@action('drop_interest', method=["POST"])
-@action.uses(db, auth, url_signer)
-def drop_interest():
-    interest_id = request.params.get('interest_id')
-    interest_email = request.params.get('user_email')
-    assert interest_id is not None
-    assert interest_email is not None
+
+def drop_interest(interest_id, interest_email):
     db((db.interests.id == interest_id) & (db.interests.user_email == interest_email)).delete()
-    print("successfully deleted interest entry")
-    return "deleted interest entry"
 
 
 @action('profile')
@@ -259,53 +263,34 @@ def edit_profile():
         return dict(form=form, url_signer=url_signer, auth=auth)
 
 
-@action('add_interest/<user_id:int>', method=["GET", "POST"])
-@action.uses('add_interest.html', db, auth.enforce(), url_signer.verify(), session)
-def add_interest(user_id=None):
-    assert user_id is not None
-    form = Form([Field('interest_category'), Field('Name'), Field('Weight')], csrf_session=session,
-                formstyle=FormStyleBulma)
-    if form.accepted:
-        db.interests.insert(interest_category=form.vars["interest_category"], interest_name=form.vars["Name"],
-                            weight=form.vars["Weight"], user_id=user_id)
-        redirect(URL('index'))
-    return dict(form=form)
-
-# Func returns a list a field notes for the 
+# Func returns a list a field notes for the
 # corresponding observation
 @action('fnote', method=["POST"])
 @action.uses(db, url_signer, auth)
 def fnote():
     observation = request.params.get("observation")
     observation_url = observation.get("url")
-    
-    
+
     print("we are in here")
     species_exist = db(db.observations_na.id == observation.get("id")).select().first()
     if species_exist is None:
         print("species is not in the database")
         return []
 
-    field_notes = db(db.field_notes.iNat_url == observation_url).select(limitby=(0,15), orderby=~db.field_notes.created_on)
+    field_notes = db(db.field_notes.iNat_url == observation_url).select(limitby=(0, 15),
+                                                                        orderby=~db.field_notes.created_on)
 
     for note in field_notes:
         note.created_on = format_timestamp(note.created_on)
 
     return dict(field_notes=field_notes)
 
+
 @action('interest_list', method=["GET"])
 @action.uses(db, url_signer, auth)
 def interest_list():
     interests = db(get_user_email() == db.interests.user_email).select()
     return dict(interests=interests)
-
-
-@action('delete_interest/<user_id:int>')
-@action.uses(db, auth.enforce(), url_signer.verify())
-def delete_contact(contact_id=None):
-    assert contact_id is not None
-    db(db.interests.id == contact_id).delete()
-    redirect(URL('index'))
 
 
 @action('get_observations')
@@ -390,21 +375,22 @@ def grab_observations():
     longmin = request.params.get('lng_min')
     filterok = request.params.get('filter')
     uid = get_userID()
-    if(filterok == "true"):
+    if (filterok == "true"):
         ints = db(db.interests.user_id == uid).select()
         ints = [x.get('species_name') for x in ints]
         ints.append('Prostrate Capeweed')
-    
-    #print(longmax, longmin, latmax, latmin)
-    query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
+
+    # print(longmax, longmin, latmax, latmin)
+    query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (
+                db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
-    if(filterok == "true"):
+    if (filterok == "true"):
         a = [z for z in a if (z.get('common_name') in ints)]
     # a = a[0:200]
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
-    #print(a)
+    # print(a)
     return dict(
         observations=a
     )
@@ -446,9 +432,9 @@ def insert_csv_to_database(filename):
             )
     print("Succesfully Added CSV to database")
 
+
 # format created_on field fnotes
 def format_timestamp(timestamp):
-
     current_time = datetime.datetime.utcnow()
     time_difference = current_time - timestamp
 
@@ -460,7 +446,7 @@ def format_timestamp(timestamp):
         formatted_time = timestamp.strftime("%Y-%m-%d")
     else:
         if hours == 1:
-            formatted_time = f"{hours} hour ago" 
+            formatted_time = f"{hours} hour ago"
         elif hours > 0:
             formatted_time = f"{hours} hours ago"
         elif minutes == 1:

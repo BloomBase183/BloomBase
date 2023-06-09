@@ -47,8 +47,11 @@
               <p class="title is-5">{{result.common_name}}</p>
               <p class="title is-6"><i>{{result.scientific_name}}</i></p>
             </div>
-            <div class="media-right">
-              <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+            <div v-if="result.is_added" class="media-right control">
+              <a class="is-hoverable">Already Added</a>
+            </div>
+            <div v-else class="media-right control">
+              <button class="button is-success is-hoverable" @click.stop="toggle_interest(result)">Add Interest</button>
             </div>
           </div>
         </div>
@@ -68,7 +71,7 @@
                 <p class="title is-6"><i>{{interest.scientific_name}}</i></p>
               </div>
               <div class="media-right">
-                <button class="button is-hoverable" @click.stop="drop_interest(interest)">Remove Interest</button>
+                <button class="button is-hoverable" @click.stop="toggle_interest(interest)">Remove Interest</button>
               </div>
           </div>
         </div>
@@ -177,12 +180,11 @@
   let post_note_url = "[[=XML(post_note_url)]]"
   let observations_url = "[[=XML(observations_url)]]"
   let search_url = "[[=XML(search_url)]]"
-  let add_interest_url = "[[=XML(add_interest_url)]]"
+  let toggle_interest_url = "[[=XML(toggle_interest_url)]]"
   let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
   let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
   let field_note_url = "[[=XML(field_notes_url)]]"
   let interest_url = "[[=XML(interest_url)]]"
-  let drop_interest_url = "[[=XML(drop_interest_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
