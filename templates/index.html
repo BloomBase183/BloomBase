@@ -70,23 +70,21 @@
             <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 326px; width: 312px;"/>
           </div>
           <div class="column is-6">
-            <div v-if="notes.length > 0" class="box modal-box" style="width: 300px; height: 150px;">
+            <div class="box modal-box" style="width: 300px; height: 150px;">
               <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
-              <p class="is-size-5 is-flex">{{ notes[0].location }}</p>
+              <p class="is-size-5 is-flex">{{clicked_observation.longitude}} {{clicked_observation.latitude}}</p>
             </div>
-            <div v-else class="box modal-box" style="width: 300px; height: 150px;">
-              <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
-            </div>
-            <div v-if="notes.length > 0" class="box modal-box" style="width: 300px; height: 150px;">
-              <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
-              <p class="is-size-6 is-flex">{{notes[0].iNat_url}}</p>
-            </div>
-            <div v-else class="box modal-box" style="width: 300px; height: 150px;">
+            <div  class="box modal-box" style="width: 300px; height: 150px;">
               <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
             </div>
           </div>
         </div>
         <p class="is-size-3"> Field Notes</p>
+        <div class="field">
+          <textarea class="textarea m-1" id="noteTitle" placeholder="Title your notes!" rows="1"></textarea>
+          <textarea class="textarea m-1" id="noteContent" placeholder="Share your notes!" rows="3"></textarea>
+          <button class="button is-fullwidth is-success m-1" @click="post_note(clicked_observation.url, clicked_observation.longitude, clicked_observation.latitude, clicked_observation)" class="button is-success">publish</button>
+        </div>
         <div v-if="notes.length <= 0">
           <p class="is-size-5">No current field notes for this observation.</p>
         </div>
@@ -103,7 +101,7 @@
                 </span>
               </div>
             </nav>
-            <div class="content">
+            <div class="content" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               {{note.notes}} 
             </div>
             <nav class="level is-mobile">
@@ -152,6 +150,7 @@
 
 [[block page_scripts]]
 <script>
+  let post_note_url = "[[=XML(post_note_url)]]"
   let observations_url = "[[=XML(observations_url)]]"
   let search_url = "[[=XML(search_url)]]"
   let add_interest_url = "[[=XML(add_interest_url)]]"
