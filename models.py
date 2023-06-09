@@ -41,7 +41,7 @@ db.define_table(
 
 db.define_table(
     'field_notes',
-    Field('title', requires=IS_NOT_EMPTY()),
+    Field('title'),
     Field('iNat_url'),
     Field('notes', 'text'),
     Field('location', 'text'),

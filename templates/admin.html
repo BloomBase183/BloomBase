@@ -4,5 +4,5 @@
     <h1 class="title has-text-centered full-width">BloomBase Admin Page</h1>
     <a href="[[=URL('upload_csv', signer=url_signer)]]" class="button is-danger" :disabled="isUploading" @click.prevent="handleUploadButtonClick">UPLOAD OBSERVATIONS</a>
     <a href="[[=URL('drop_observations', signer=url_signer)]]" class="button is-warning" :disabled="isDropping" @click.prevent="handleDropButtonClick">DROP OLD OBSERVATIONS</a>
-    <a href="[[=URL('get_observations', signer=url_signer)]]" class="button is-link" :disabled="isDropping" @click.prevent="handleDropButtonClick">UPDATE OBSERVATIONS</a>
+    <a href="[[=URL('update_database', signer=url_signer)]]" class="button is-link" :disabled="isDropping" @click.prevent="handleDropButtonClick">UPDATE OBSERVATIONS</a>
 </div>

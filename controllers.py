@@ -74,6 +74,7 @@ def index():
         field_notes_url=URL('fnote'),
         interest_url=URL('interest_list'),
         drop_interest_url=URL('drop_interest'),
+        post_note_url=URL('add_note', signer=url_signer),
     )
 
 @action('search')
@@ -114,22 +115,32 @@ def fieldNotes():
     # access all field notes associated with the current user email
     print("gettinfnote")
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
-    print(field_notes)
+    
     return dict(field_notes=field_notes)
 
-@action('addNote', method=["GET", "POST"])
-@action.uses('addNote.html', db, auth.enforce(), url_signer.verify(), session)
-def addNote():
+@action('add_note', method=["GET", "POST"])
+@action.uses('add_note.html', db, auth.enforce(), url_signer.verify(), session)
+def add_note():
+    content = request.params.get('noteContent')
+    iNat_url = request.params.get('iNat_url')
+    long = request.params.get('long')
+    lat = request.params.get('lat')
+    title = request.params.get('title')
+    #print(content, iNat_url, long, lat)
+    db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat, title=title)
+    return "Added note!"
+    # if get_userID() is None: #if the user isnt logged in.
+    #     redirect(URL('index'))
     # insert form, no record in database
-    form = Form(db.field_notes, formstyle=FormStyleBulma)
-    if form.accepted:
-        redirect(URL('profile'))
+    # form = Form(db.field_notes, formstyle=FormStyleBulma)
+    # if form.accepted:
+    #     redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
-    return dict(
-        form=form,
-        url_signer=url_signer,
-        auth=auth,
-    )
+    # return dict(
+    #     form=form,
+    #     url_signer=url_signer,
+    #     auth=auth,
+    # )
 
 
 
@@ -141,10 +152,10 @@ def view_note(field_note_id=None):
     f = db.field_notes[field_note_id]
     if f is None:
         # Nothing found to be edited!
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     form = Form(db.field_notes, record=f, deletable=False, formstyle=FormStyleBulma)
     if form.accepted:
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
     return dict(
         form=form,
@@ -268,7 +279,7 @@ def fnote():
     observation = request.params.get("observation")
     observation_url = observation.get("url")
     
-    print(observation_url)
+    
     print("we are in here")
     species_exist = db(db.observations_na.id == observation.get("id")).select().first()
     if species_exist is None:
@@ -343,7 +354,6 @@ def get_observations():
             print("Succesful API Request")
     else:
         print("Already added those observations")
-    redirect('admin')
 
 
 @action('upload_csv')
@@ -363,11 +373,12 @@ def drop_observations():
 
 # This is the function that would be called everyday
 @action('update_database')
-@action.uses('admin.html', db)
+@action.uses('admin.html', db, url_signer.verify())
 def update_database():
     get_observations()  # Grab todays observations
     drop_old_observations(10)  # Remove 10 day old observations
     print("Database Updated")
+    redirect(URL('admin', signer=url_signer))
 
 
 @action('grab_observations')
@@ -384,7 +395,7 @@ def grab_observations():
         ints = [x.get('species_name') for x in ints]
         ints.append('Prostrate Capeweed')
     
-    print(longmax, longmin, latmax, latmin)
+    #print(longmax, longmin, latmax, latmin)
     query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
     if(filterok == "true"):
@@ -393,6 +404,7 @@ def grab_observations():
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
+    #print(a)
     return dict(
         observations=a
     )
