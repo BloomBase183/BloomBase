@@ -63,17 +63,13 @@ def index():
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
-        interest_url=URL('interest_list'),
         drop_interest_url=URL('drop_interest'),
         post_note_url=URL('add_note', signer=url_signer),
         interest_url=URL('interest_list'),
-        drop_interest_url=URL('drop_interest'),
         like_post_url=URL('like_post'),
         dislike_post_url=URL('dislike_post'),
         update_likes_url=URL('update_likes'),
         update_dislikes_url=URL('update_dislikes'),
-
-
     )
 
 @action('search')
