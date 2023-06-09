@@ -176,7 +176,19 @@ let init = (app) =>{
       .then(r => {
       });
   };
+  };
 
+  
+  app.drop_interest = function (interest){
+    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+      .then(response => {
+        console.log(response);
+        app.interest_list();
+      })
+      .catch(error => {
+        console.error('Failed to drop interest', error)
+      });
+  };
   app.clear_search = function () {
     console.log("clicked")
     this.query = "";
@@ -197,7 +209,7 @@ let init = (app) =>{
     filterinterests: false,
     notes: [],
     interests: [],
-
+    noteContent: "",
   };
   app.methods = {
     post_note: app.post_note,

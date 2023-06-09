@@ -63,6 +63,8 @@ def index():
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
+        interest_url=URL('interest_list'),
+        drop_interest_url=URL('drop_interest'),
         post_note_url=URL('add_note', signer=url_signer),
         interest_url=URL('interest_list'),
         drop_interest_url=URL('drop_interest'),
@@ -296,6 +298,7 @@ def interest_list():
     interests = db(get_user_email() == db.interests.user_email).select()
     return dict(interests=interests)
 
+
 @action('like_post', method=["POST"])
 @action.uses(db, url_signer, auth)
 def like_post():
@@ -375,6 +378,7 @@ def update_dislikes():
         print("we update")
         db(db.field_notes.id == note_id).update(like_count=db.field_notes.like_count - 1, dislike_count=db.field_notes.dislike_count + 1)
     return
+
 
 @action('delete_interest/<user_id:int>')
 @action.uses(db, auth.enforce(), url_signer.verify())
