@@ -72,6 +72,8 @@ def index():
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
+        interest_url=URL('interest_list'),
+        drop_interest_url=URL('drop_interest'),
         post_note_url=URL('add_note', signer=url_signer),
     )
 
@@ -163,11 +165,14 @@ def view_note(field_note_id=None):
 
 
 @action('add_interest', method=["POST"])
-@action.uses(db, auth)
+@action.uses(db, auth, url_signer)
 def add_interest():
     # Grabbing neccessary info 
     species_id = request.params.get('species_id')
     species_name = request.params.get('species_name')
+    species_image = request.params.get('species_image')
+    species_scientific_name = request.params.get('scientific_name')
+    print(species_image)
     # Checking if species is in database
     species_exist = db(db.observations_na.id == species_id).select().first()
     # Checking if species is already added as an interest from user
@@ -184,9 +189,20 @@ def add_interest():
         return 'false'
 
     # Adding interest into users table
-    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name)
+    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name, scientific_name=species_scientific_name, image=species_image)
     print("added interest")
     return 'true'
+
+@action('drop_interest', method=["POST"])
+@action.uses(db, auth, url_signer)
+def drop_interest():
+    interest_id = request.params.get('interest_id')
+    interest_email = request.params.get('user_email')
+    assert interest_id is not None
+    assert interest_email is not None
+    db((db.interests.id == interest_id) & (db.interests.user_email == interest_email)).delete()
+    print("successfully deleted interest entry")
+    return "deleted interest entry"
 
 
 @action('profile')
@@ -277,12 +293,12 @@ def fnote():
 
     return dict(field_notes=field_notes)
 
+@action('interest_list', method=["GET"])
+@action.uses(db, url_signer, auth)
+def interest_list():
+    interests = db(get_user_email() == db.interests.user_email).select()
+    return dict(interests=interests)
 
-# def add_interest(user_id = None):
-#    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
-#    if form.accepted:
-#      redirect(URL('index'))
-#    return dict(form=form)
 
 @action('delete_interest/<user_id:int>')
 @action.uses(db, auth.enforce(), url_signer.verify())
