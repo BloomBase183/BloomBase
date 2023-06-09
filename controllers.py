@@ -162,6 +162,20 @@ def view_note(field_note_id=None):
     )
 
 
+@action('delete_note/<field_note_id:int>', method=["GET", "POST"])
+@action.uses('delete_note.html', db, auth.enforce(), url_signer.verify(), session)
+def view_note(field_note_id=None):
+    assert field_note_id is not None
+    f = db.field_notes[field_note_id]
+    if f is None:
+        # Nothing found to be edited!
+        redirect(URL('profile', signer=url_signer))
+
+    db(db.field_notes.id == f.id).delete()
+
+    redirect(URL('profile', signer=url_signer))
+
+
 @action('add_interest', method=["POST"])
 @action.uses(db, auth)
 def add_interest():
