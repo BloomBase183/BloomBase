@@ -84,8 +84,8 @@ def search():
     search_results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
                     (db.observations_na.common_name.contains(user_input, all=True)) |
-                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
-
+                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select()
+    print(search_results)
     return dict(search_results=search_results.as_list())
 
 
