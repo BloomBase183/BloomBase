@@ -223,7 +223,7 @@ console.log('got the points')
     // markers.splice(0,markers.length)
     // markerCluster.addMarkers(markers);
 
-    // markerCluster.clearMarkers();
+    markerCluster.clearMarkers();
     console.log("log")
     console.log(markerCluster.markers.length)
     // markerCluster.markers.splice(0,markerCluster.markers.length)
