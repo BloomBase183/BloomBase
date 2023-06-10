@@ -132,15 +132,15 @@
               <div class="level-left">
                 <a class="level-item" aria-label="reply">
                   <span class="icon is-small">
-                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                    <i class="fa fa-thumbs-up" @click="like(note)" aria-hidden="true"></i>
                   </span>
-                  <span class="ml-1">4</span>
+                  <span class="ml-1">{{note.like_count}}</span>
                 </a>
                 <a class="level-item" aria-label="retweet">
                   <span class="icon is-small">
-                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+                    <i class="fa fa-thumbs-down" @click="dislike(note)" aria-hidden="true"></i>
                   </span>
-                  <span class="ml-1">1</span>
+                  <span class="ml-1">{{note.dislike_count}}</span>
                 </a>
               </div>
             </nav>
@@ -183,6 +183,10 @@
   let field_note_url = "[[=XML(field_notes_url)]]"
   let interest_url = "[[=XML(interest_url)]]"
   let drop_interest_url = "[[=XML(drop_interest_url)]]"
+  let like_post_url = "[[=XML(like_post_url)]]"
+  let dislike_post_url = "[[=XML(dislike_post_url)]]"
+  let update_likes_url = "[[=XML(update_likes_url)]]"
+  let update_dislikes_url = "[[=XML(update_dislikes_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
