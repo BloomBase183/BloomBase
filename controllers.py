@@ -72,6 +72,9 @@ def index():
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
+        interest_url=URL('interest_list'),
+        drop_interest_url=URL('drop_interest'),
+        post_note_url=URL('add_note', signer=url_signer),
     )
 
 @action('search')
@@ -112,22 +115,32 @@ def fieldNotes():
     # access all field notes associated with the current user email
     print("gettinfnote")
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
-    print(field_notes)
+    
     return dict(field_notes=field_notes)
 
-@action('addNote', method=["GET", "POST"])
-@action.uses('addNote.html', db, auth.enforce(), url_signer.verify(), session)
-def addNote():
+@action('add_note', method=["GET", "POST"])
+@action.uses('add_note.html', db, auth.enforce(), url_signer.verify(), session)
+def add_note():
+    content = request.params.get('noteContent')
+    iNat_url = request.params.get('iNat_url')
+    long = request.params.get('long')
+    lat = request.params.get('lat')
+    title = request.params.get('title')
+    #print(content, iNat_url, long, lat)
+    db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat, title=title)
+    return "Added note!"
+    # if get_userID() is None: #if the user isnt logged in.
+    #     redirect(URL('index'))
     # insert form, no record in database
-    form = Form(db.field_notes, formstyle=FormStyleBulma)
-    if form.accepted:
-        redirect(URL('profile'))
+    # form = Form(db.field_notes, formstyle=FormStyleBulma)
+    # if form.accepted:
+    #     redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
-    return dict(
-        form=form,
-        url_signer=url_signer,
-        auth=auth,
-    )
+    # return dict(
+    #     form=form,
+    #     url_signer=url_signer,
+    #     auth=auth,
+    # )
 
 
 
@@ -139,10 +152,10 @@ def view_note(field_note_id=None):
     f = db.field_notes[field_note_id]
     if f is None:
         # Nothing found to be edited!
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     form = Form(db.field_notes, record=f, deletable=False, formstyle=FormStyleBulma)
     if form.accepted:
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
     return dict(
         form=form,
@@ -152,11 +165,14 @@ def view_note(field_note_id=None):
 
 
 @action('add_interest', method=["POST"])
-@action.uses(db, auth)
+@action.uses(db, auth, url_signer)
 def add_interest():
     # Grabbing neccessary info 
     species_id = request.params.get('species_id')
     species_name = request.params.get('species_name')
+    species_image = request.params.get('species_image')
+    species_scientific_name = request.params.get('scientific_name')
+    print(species_image)
     # Checking if species is in database
     species_exist = db(db.observations_na.id == species_id).select().first()
     # Checking if species is already added as an interest from user
@@ -173,9 +189,20 @@ def add_interest():
         return 'false'
 
     # Adding interest into users table
-    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name)
+    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name, scientific_name=species_scientific_name, image=species_image)
     print("added interest")
     return 'true'
+
+@action('drop_interest', method=["POST"])
+@action.uses(db, auth, url_signer)
+def drop_interest():
+    interest_id = request.params.get('interest_id')
+    interest_email = request.params.get('user_email')
+    assert interest_id is not None
+    assert interest_email is not None
+    db((db.interests.id == interest_id) & (db.interests.user_email == interest_email)).delete()
+    print("successfully deleted interest entry")
+    return "deleted interest entry"
 
 
 @action('profile')
@@ -252,7 +279,7 @@ def fnote():
     observation = request.params.get("observation")
     observation_url = observation.get("url")
     
-    print(observation_url)
+    
     print("we are in here")
     species_exist = db(db.observations_na.id == observation.get("id")).select().first()
     if species_exist is None:
@@ -266,12 +293,12 @@ def fnote():
 
     return dict(field_notes=field_notes)
 
+@action('interest_list', method=["GET"])
+@action.uses(db, url_signer, auth)
+def interest_list():
+    interests = db(get_user_email() == db.interests.user_email).select()
+    return dict(interests=interests)
 
-# def add_interest(user_id = None):
-#    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
-#    if form.accepted:
-#      redirect(URL('index'))
-#    return dict(form=form)
 
 @action('delete_interest/<user_id:int>')
 @action.uses(db, auth.enforce(), url_signer.verify())
@@ -368,7 +395,7 @@ def grab_observations():
         ints = [x.get('species_name') for x in ints]
         ints.append('Prostrate Capeweed')
     
-    print(longmax, longmin, latmax, latmin)
+    #print(longmax, longmin, latmax, latmin)
     query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
     if(filterok == "true"):
@@ -377,7 +404,7 @@ def grab_observations():
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
-    print(a)
+    #print(a)
     return dict(
         observations=a
     )

@@ -34,21 +34,28 @@ let init = (app) =>{
       });
   };
 
+  app.interest_list = function () {
+    axios.get(interest_url)
+      .then(function(l) {
+        app.vue.interests = l.data.interests;
+      });
+  };
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
     // console.log(app.vue.observations)
     // console.log("getobs")
-    
+    app.interest_list();
     initMap();
     // console.log("done")
   };
   app.get_observations = function () {
     axios.get(observations_url)
       .then(function (r) {
-        app.vue.observations = r.data.observations
+        app.vue.observations = r.data.observations;
      })
   };
+
 
   app.search = function () {
     if (app.vue.query.length > 1) {
@@ -61,20 +68,47 @@ let init = (app) =>{
     
   };
 
+  app.post_note = function (iNat_url, long, lat,obs) {
+    var noteTitle = document.getElementById("noteTitle").value;
+    var noteContent = document.getElementById("noteContent").value;
+    axios.post(post_note_url, {title: noteTitle, noteContent: noteContent, iNat_url: iNat_url, long: long, lat: lat }) // Corrected variable name
+      .then(response => {
+        app.fnote(obs);
+      })
+      .catch(error => {
+        // Handle any errors
+        console.error(error);
+      });
+  };
+
   app.show_observation = function (observation) {
     console.log('clicked on observation:', observation);
     this.clicked_observation = observation;
   };
 
   app.add_interest = function (result) {
-    axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name}).then(response => {
+    axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name, scientific_name: result.scientific_name, species_image: result.image_url})
+    .then(response => {
       console.log('Interest added successfully');
+      app.interest_list();
     })
     .catch(error => {
       console.error('Failed to add interest', error)
-    });
+    });    
+    //app.interest_list();
   };
 
+  
+  app.drop_interest = function (interest){
+    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+      .then(response => {
+        console.log(response);
+        app.interest_list();
+      })
+      .catch(error => {
+        console.error('Failed to drop interest', error)
+      });
+  };
   app.clear_search = function () {
     console.log("clicked")
     this.query = "";
@@ -82,6 +116,9 @@ let init = (app) =>{
   };
 
   app.data ={
+    iNat_url: "",
+    long: "",
+    lat: "",
     observations: [],
     markers: [],
     currentMarkers: [],
@@ -91,8 +128,11 @@ let init = (app) =>{
     clicked_observation: null,
     filterinterests: false,
     notes: [],
+    interests: [],
+    noteContent: "",
   };
   app.methods = {
+    post_note: app.post_note,
     get_observations: app.get_observations,
     search: app.search,
     add_interest: app.add_interest,
@@ -102,6 +142,8 @@ let init = (app) =>{
     popup: app.popup,
     depop: app.depop,
     fnote: app.fnote,
+    interest_list: app.interest_list,
+    drop_interest: app.drop_interest,
   };
 
   app.vue = new Vue({

@@ -41,7 +41,7 @@ db.define_table(
 
 db.define_table(
     'field_notes',
-    Field('title', requires=IS_NOT_EMPTY()),
+    Field('title'),
     Field('iNat_url'),
     Field('notes', 'text'),
     Field('location', 'text'),
@@ -62,6 +62,8 @@ db.define_table(
     Field('interest_name'),
     Field('species_id', 'integer'),
     Field('species_name'),
+    Field('scientific_name'),
+    Field('image'),
     # the weight impacts which interests are highest priority
     Field('interest_weight', 'integer', requires=IS_INT_IN_RANGE(1, 11)),
 )
