@@ -41,7 +41,7 @@ db.define_table(
 
 db.define_table(
     'field_notes',
-    Field('title', requires=IS_NOT_EMPTY()),
+    Field('title'),
     Field('iNat_url'),
     Field('notes', 'text'),
     Field('location', 'text'),
@@ -67,10 +67,12 @@ db.define_table(
 )
 
 db.define_table(
+    #ratings of how well the bloom is happening
     'observation_densities',
     Field('user_email'),
     Field('observation'),
     Field('observation_rating', default=0),
+    Field('observed_on', 'date'),
 
 )
 
@@ -82,7 +84,6 @@ db.interests.id.readable = db.interests.id.writable = False
 db.users.user_email.readable = db.users.user_email.writable = False
 db.users.id.readable = db.users.id.writable = False
 db.interests.user_email.readable = db.interests.user_email.writable = False
-db.observation_densities.user_email.readable = db.observation_densities.user_email.writable = False
 
 
 db.commit()

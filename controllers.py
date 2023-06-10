@@ -71,7 +71,12 @@ def index():
         results=results,
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
+        field_notes_url=URL('fnote'),
+        post_note_url=URL('add_note', signer=url_signer),
         rate_density_url=URL('rate_density'),
+        average_density_url=URL('average_density'),
+        has_rated_density_url=URL('has_rated_density'),
+        delete_observation_rating_url=URL('delete_observation_rating'),
     )
 
 @action('search')
@@ -79,10 +84,13 @@ def index():
 def search():
     user_input = request.params.get('q')
     search_results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
-                        (db.observations_na.scientific_name.contains(user_input, all=True)) |
-                        (db.observations_na.common_name.contains(user_input, all=True)) |
-                        (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
-    return dict(search_results=search_results)
+                    (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                    (db.observations_na.common_name.contains(user_input, all=True)) |
+                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
+
+    return dict(search_results=search_results.as_list())
+
+
 
 
 ## MAKE SURE TO MAKE IT SO ONLY ADMINS CAN ACCESS THIS ##
@@ -109,22 +117,34 @@ def fieldNotes():
     # access all field notes associated with the current user email
     print("gettinfnote")
     field_notes = db(db.field_notes.user_email == get_user_email()).select()
-    print(field_notes)
+    
     return dict(field_notes=field_notes)
 
-@action('addNote', method=["GET", "POST"])
-@action.uses('addNote.html', db, auth.enforce(), url_signer.verify(), session)
-def addNote():
+@action('add_note', method=["GET", "POST"])
+@action.uses('add_note.html', db, auth.enforce(), url_signer.verify(), session)
+def add_note():
+    content = request.params.get('noteContent')
+    iNat_url = request.params.get('iNat_url')
+    long = request.params.get('long')
+    lat = request.params.get('lat')
+    title = request.params.get('title')
+    #print(content, iNat_url, long, lat)
+    db.field_notes.insert(notes=content, iNat_url=iNat_url, longitude=long, latitude=lat, title=title)
+    return "Added note!"
+    # if get_userID() is None: #if the user isnt logged in.
+    #     redirect(URL('index'))
     # insert form, no record in database
-    form = Form(db.field_notes, formstyle=FormStyleBulma)
-    if form.accepted:
-        redirect(URL('profile'))
+    # form = Form(db.field_notes, formstyle=FormStyleBulma)
+    # if form.accepted:
+    #     redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
-    return dict(
-        form=form,
-        url_signer=url_signer,
-        auth=auth,
-    )
+    # return dict(
+    #     form=form,
+    #     url_signer=url_signer,
+    #     auth=auth,
+    # )
+
+
 
 
 @action('view_note/<field_note_id:int>', method=["GET", "POST"])
@@ -134,10 +154,10 @@ def view_note(field_note_id=None):
     f = db.field_notes[field_note_id]
     if f is None:
         # Nothing found to be edited!
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     form = Form(db.field_notes, record=f, deletable=False, formstyle=FormStyleBulma)
     if form.accepted:
-        redirect(URL('profile'))
+        redirect(URL('profile', signer=url_signer))
     # if this is a get request, or a post but not accepted = with error
     return dict(
         form=form,
@@ -239,14 +259,28 @@ def add_interest(user_id=None):
         redirect(URL('index'))
     return dict(form=form)
 
-@action("rate_density", method=["GET", "POST"])
-@action.uses(db, auth, url_signer.verify(), session)
-def rate_density():
-    # Take the users rating of an observation and submit it
-    rating = int(request.params.get('rating'))
-    print(rating)
-    db.observation_densities.insert(observation = "String", user_email = "Email", observation_rating =7)
-    return dict(auth=auth)
+# Func returns a list a field notes for the 
+# corresponding observation
+@action('fnote', method=["POST"])
+@action.uses(db, url_signer, auth)
+def fnote():
+    observation = request.params.get("observation")
+    observation_url = observation.get("url")
+    
+    
+    print("we are in here")
+    species_exist = db(db.observations_na.id == observation.get("id")).select().first()
+    if species_exist is None:
+        print("species is not in the database")
+        return []
+
+    field_notes = db(db.field_notes.iNat_url == observation_url).select(limitby=(0,15), orderby=~db.field_notes.created_on)
+
+    for note in field_notes:
+        note.created_on = format_timestamp(note.created_on)
+
+    return dict(field_notes=field_notes)
+
 
 # def add_interest(user_id = None):
 #    form = Form(db.interests, creator = user_id, csrf_session=session, formstyle=FormStyleBulma) 
@@ -260,6 +294,72 @@ def delete_contact(contact_id=None):
     assert contact_id is not None
     db(db.interests.id == contact_id).delete()
     redirect(URL('index'))
+
+@action("rate_density", method=["GET", "POST"])
+@action.uses(db, auth, session)
+def rate_density():
+    # Take the users rating of an observation and submit it, should only be called by logged in users
+    #1-10 rating on the observation
+    rating = int(request.params.get('rating'))
+    date = request.params.get('date')
+    #id of the observation
+    id = request.params.get('id')
+    #why the users need to be logged in to rate, it's associated with their email
+    user_email = get_user_email()
+    print(rating, id, user_email)
+    db.observation_densities.insert(observation = id, user_email = user_email, observation_rating = rating, observed_on = date)
+    return dict(auth=auth)
+
+@action("average_density", method=["GET", "POST"])
+@action.uses(db, auth, session)
+def average_density():
+    # Takes the id of an observation and looks in the database to see all the ratings for that observation, then averages them
+    #id of the observation
+    obs_id = int(request.params.get('id'))
+    ratings = (db(db.observation_densities.observation == obs_id).select()).as_list()
+    if len(ratings) > 0:
+        #we have actual ratings to make a review of
+        avg = 0
+        for rating in ratings:
+            avg += int(rating["observation_rating"])
+        average = avg / len(ratings)
+    else:
+        #no ratings, return -1
+        average = -1
+    return dict(average = average)
+
+@action("has_rated_density", method=["GET", "POST"])
+@action.uses(db, auth, session)
+def has_rated_density():
+    # Takes the id of an observation and looks in the database to see all the ratings for that observation, then averages them
+    #id of the observation
+    obs_id = int(request.params.get('id'))
+
+    ratings = (db(db.observation_densities.observation == obs_id).select()).as_list()
+    rated = False
+    email = get_user_email()
+    if len(ratings) > 0:
+        #we have ratings, check if the user is one of them
+        for rating in ratings:
+            #print(rating["user_email"], email )
+            if (email == rating["user_email"]):
+                rated = True
+    #print(rated)
+    return dict(rated = rated)
+
+@action('delete_observation_rating', method=["GET", "POST"])
+@action.uses(db, auth, session)
+def delete_observation_rating():
+    obs_id = int(request.params.get('id'))
+    assert obs_id is not None
+    #deletes an observation rating if the user has done one
+    email = get_user_email()
+    obs_ratings = db(db.observation_densities.observation == obs_id).select()
+    for rating in obs_ratings:
+        if rating["user_email"] == email:
+            print(rating)
+            db(db.observation_densities.id == rating.id).delete()
+    #db(db.observation_densities.id == obs_id & db.observation_densities.user_email == get_user_email()).delete()
 
 
 @action('get_observations')
@@ -349,7 +449,7 @@ def grab_observations():
         ints = [x.get('species_name') for x in ints]
         ints.append('Prostrate Capeweed')
     
-    print(longmax, longmin, latmax, latmin)
+    #print(longmax, longmin, latmax, latmin)
     query = (db.observations_na.longitude <= longmax) & (db.observations_na.longitude >= longmin) & (db.observations_na.latitude >= latmin) & (db.observations_na.latitude <= latmax)
     a = db(query).select().as_list()
     if(filterok == "true"):
@@ -358,6 +458,7 @@ def grab_observations():
     print("grabbing url got")
     # print("a is" + str(a))
     print("got the value in db")
+    #print(a)
     return dict(
         observations=a
     )
@@ -365,6 +466,7 @@ def grab_observations():
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
+    #db.executesql(f"DELETE FROM observations_densities WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
     # Debug
     # Count the number of rows that match the condition
     # count = db.executesql(f"SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")[0][
@@ -398,3 +500,29 @@ def insert_csv_to_database(filename):
                 taxon_id=row['taxon_id']
             )
     print("Succesfully Added CSV to database")
+
+# format created_on field fnotes
+def format_timestamp(timestamp):
+
+    current_time = datetime.datetime.utcnow()
+    time_difference = current_time - timestamp
+
+    minutes = time_difference.seconds // 60
+    hours = minutes // 60
+    days = time_difference.days
+
+    if days > 0:
+        formatted_time = timestamp.strftime("%Y-%m-%d")
+    else:
+        if hours == 1:
+            formatted_time = f"{hours} hour ago" 
+        elif hours > 0:
+            formatted_time = f"{hours} hours ago"
+        elif minutes == 1:
+            formatted_time = f"{minutes} minute ago"
+        elif minutes > 0:
+            formatted_time = f"{minutes} minutes ago"
+        else:
+            formatted_time = "Just now"
+
+    return formatted_time

@@ -6,6 +6,14 @@
   }
 </style>
 
+<style>
+  .box:not(.modal-box):hover {
+  background-color: lightblue; /* Customize the highlight color */
+  border: 1px solid lightblue; /* Customize the border color */
+  }
+</style>
+
+
 
 
 <div class="section" id="vue-target">
@@ -24,9 +32,10 @@
     </div>
   <!--Section for Search bar results -->
   </div>
+  
   <div class="field" v-for="result in search_results">
     <div class="column is-7">
-      <div class="box">
+      <div class="box" @click="popup(result)">
         <div class="media">
           <div class="media-left">
             <figure class="image">
@@ -38,11 +47,100 @@
             <p class="title is-6"><i>{{result.scientific_name}}</i></p>
           </div>
           <div class="media-right is-centered">
-            <button class="button is-hoverable is-centered" @click="add_interest(result)">Add Interest</button>
+            <button class="button is-hoverable is-centered" @click.stop="add_interest(result)">Add Interest</button>
           </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Section for pop-up-->
+  <div v-if="clicked_observation" class="modal is-active">
+    <div class="modal-background" @click="depop"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title is-size-3">{{ clicked_observation.common_name }}
+          <span class="is-size-6"> ({{ clicked_observation.scientific_name }})</span>
+        </p>
+        <button class="delete" aria-label="close" @click="depop"></button>
+      </header>
+      <section class="modal-card-body">
+        <div class="columns">
+          <div class="column is-6">
+            <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 326px; width: 312px;"/>
+          </div>
+          <div class="column is-6">
+            <div class="box modal-box" style="width: 300px; height: 150px;">
+              <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
+              <p class="is-size-5 is-flex">{{clicked_observation.longitude}} {{clicked_observation.latitude}}</p>
+            </div>
+            <div  class="box modal-box" style="width: 300px; height: 150px;">
+              <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
+            </div>
+          </div>
+        </div>
+        <p class="is-size-3"> Observation Density</p>
+        <div class="button is-link"  v-if="observation_average >= 0"><span>Average Rating: {{observation_average}}</span></div>
+        <div class="button is-link"  v-if="observation_average < 0"><span>No Ratings Yet.</span></div>
+        <!--Only give the ability to rate observations to logged in users-->
+         [[if auth.session.get("_user_email"):]]
+        <div><input v-model="observation_rating" class="slider" step="1" min="0" max="10" value="0" type="range">{{observation_rating}}</div>
+        <!--If the user hasn't rated an observation yet give them the option to, otherwise let them edit/delete a previous observation rating-->
+        <div  v-if="rated_density === false"><button class="button is-success m-1" @click="rate_density(observation_rating, clicked_observation.id, clicked_observation.observed_on)" class="button is-success">Rate Density</button></div>
+        <!--Gives option to edit and delete rating-->
+        <div  v-if="rated_density === true"><button class="button is-warning m-1" @click="edit_observation_rating(observation_rating, clicked_observation.id, clicked_observation.observed_on)">Update Rating</button><button class="button is-danger m-1" @click="delete_observation_rating(clicked_observation.id)">Delete Rating</button></div>
+        [[else:]]
+        <div>Sign In to rate this Observation!</div>
+        [[pass]]
+        <p class="is-size-3"> Field Notes</p>
+        <div class="field">
+          <textarea class="textarea m-1" id="noteTitle" placeholder="Title your notes!" rows="1"></textarea>
+          <textarea class="textarea m-1" id="noteContent" placeholder="Share your notes!" rows="3"></textarea>
+          <button class="button is-fullwidth is-success m-1" @click="post_note(clicked_observation.url, clicked_observation.longitude, clicked_observation.latitude, clicked_observation)" class="button is-success">publish</button>
+        </div>
+        <div v-if="notes.length <= 0">
+          <p class="is-size-5">No current field notes for this observation.</p>
+        </div>
+        <div v-else>
+          <div class="box modal-box" v-for="note in notes">
+            <nav class="level is-mobile">
+              <div class="level-left">
+                <span class="is-size-5">{{note.title}}</span>
+                
+              </div>
+              <div class="level-right">
+                <span class="level-item">
+                  {{note.created_on}}
+                </span>
+              </div>
+            </nav>
+            <div class="content" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{note.notes}} 
+            </div>
+            <nav class="level is-mobile">
+              <div class="level-left">
+                <a class="level-item" aria-label="reply">
+                  <span class="icon is-small">
+                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                  </span>
+                  <span class="ml-1">4</span>
+                </a>
+                <a class="level-item" aria-label="retweet">
+                  <span class="icon is-small">
+                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+                  </span>
+                  <span class="ml-1">1</span>
+                </a>
+              </div>
+            </nav>
+          </div>
+        </div>
+        
+      </section>
+        
+        <!-- Include additional information as needed -->
+    </div>
+    
   </div>
     <!--Section for Goolge Maps -->
     <link rel="stylesheet" type="text/css" href="css/style.css" />
@@ -59,40 +157,23 @@
         <div class="has-text-weight-bold is-size-3">TESTINGG</div>
       </div>
     </div>
+
 </div>
   
-<div class = "column is-4">
-  <div class ="box">
-    <div>How was your experience with the observation? <br> (0: Observation wasn't there 10: There was so much blooming)<div>
-  <div class="slidecontainer">
-  <input type="range" min="0" max="10" value="0" class="slider" id="obSlider">
-  <span id="val"></span>
 
-</div>
-
-<script>
-var slider = document.getElementById("obSlider");
-var output = document.getElementById("val");
-output.innerHTML = slider.value;
-
-slider.oninput = function() {
-  output.innerHTML = this.value;
-}
-
-</script>
-<input type="submit"  @click="test(7)"  value="Submit" class="button is-link">
-  </div>
-  </div>
-</div>
-<button @click="test" class="button">TESTING</button>
 [[block page_scripts]]
 <script>
+  let post_note_url = "[[=XML(post_note_url)]]"
   let observations_url = "[[=XML(observations_url)]]"
   let search_url = "[[=XML(search_url)]]"
   let add_interest_url = "[[=XML(add_interest_url)]]"
   let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
   let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
+  let field_note_url = "[[=XML(field_notes_url)]]"
   let rate_density_url = "[[=XML(rate_density_url)]]"
+  let average_density_url = "[[=XML(average_density_url)]]"
+  let has_rated_density_url = "[[=XML(has_rated_density_url)]]"
+  let delete_observation_rating_url = "[[=XML(delete_observation_rating_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
