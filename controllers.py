@@ -44,14 +44,23 @@ url_signer = URLSigner(session)
 
 
 # auth = EmailAuth(session, url_signer)
+f = open(JSON_FILE)
 
+rows = json.load(f)
+mapkey = rows[0].get('maps')
 
 @action('index')
 @action.uses('index.html', db, session, url_signer, auth)
 def index():
     # Section is for the searchBar component
-    f = open(JSON_FILE)
-
+    user_input = request.params.get('user_input')
+    if user_input == "" or user_input is None:
+        results = db(db.observations_na).select(limitby=(0,10))
+    else:
+        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
+                (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                (db.observations_na.common_name.contains(user_input, all=True)) |
+                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     rows = json.load(f)
     mapkey = rows[0].get('maps')
     return dict(
@@ -218,7 +227,9 @@ def profile():
         # interests are empty for now
         interests=[],
         url_signer=url_signer,
-        auth=auth
+        auth=auth,
+        MAPS_API_KEY=mapkey,
+        getfieldnotes_url=URL('get_fieldNotes'),
     )
 
 
