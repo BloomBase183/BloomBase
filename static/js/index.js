@@ -100,6 +100,85 @@ let init = (app) =>{
     //app.interest_list();
   };
 
+  // Func drops the given interest in the db
+  app.drop_interest = function (interest){
+    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+      .then(response => {
+        console.log(response);
+        app.interest_list();
+      })
+      .catch(error => {
+        console.error('Failed to drop interest', error);
+      });
+  };
+
+  // displays the like number on ui
+  app.like = function (fnote) {
+    axios.post(like_post_url, {id: fnote.id})
+    .then(response => {
+      //will fill with get likes count function
+      
+      if (response.data === true) {
+        fnote.like_count += 1;
+      } 
+      else if (response.data === false) {
+        console.log("already liked")
+      } else {
+        fnote.like_count += 1;
+        fnote.dislike_count -= 1;
+        console.log("like_count " + fnote.like_count);
+        console.log("dislike_count " + fnote.dislike_count);
+      }
+      
+      app.update_like(response.data, fnote)
+    })
+    .catch(error => {
+      console.error('Failed to like field note', error);
+    });
+  };
+
+  // updates the like count in field notes
+  app.update_like = function(response, fnote) {
+    axios.post(update_likes_url, {response:response, note: fnote})
+      .then(r => {
+        console.log("coo")
+        
+      });
+  };
+
+  // displays the dislike number on ui
+  app.dislike = function (fnote) {
+    axios.post(dislike_post_url, {id: fnote.id})
+    .then(response => {
+      //will fill with get dislikes count function
+      
+      if (response.data === true) {
+        fnote.dislike_count += 1;
+      } 
+      else if (response.data === false){
+        console.log("already disliked")
+      } else {
+        fnote.like_count -= 1;
+        fnote.dislike_count += 1;
+        console.log("like_count " + fnote.like_count);
+        console.log("dislike_count " + fnote.dislike_count);
+      }
+    
+      app.update_dislikes(response.data, fnote)
+      
+    })
+    .catch(error => {
+      console.error('Failed to dislike field note', error);
+    });
+  };
+
+  // updates the field note dislike field 
+  app.update_dislikes = function(response, fnote) {
+    axios.post(update_dislikes_url, {response:response, note: fnote})
+      .then(r => {
+      });
+  };
+
   
   app.drop_interest = function (interest){
     axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
@@ -152,6 +231,10 @@ let init = (app) =>{
     fnote: app.fnote,
     interest_list: app.interest_list,
     drop_interest: app.drop_interest,
+    like: app.like,
+    update_likes: app.update_likes,
+    dislike: app.dislike,
+    update_dislikes: app.update_dislikes,
     srchpopup: app.srchpopup,
     desrchpop: app.desrchpop,
   };
