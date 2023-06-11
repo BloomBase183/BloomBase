@@ -3,10 +3,8 @@
  * that contains the map. 
  */
  #map {
-    height: 300px;
-  }
-  #map2 {
-    height: 300px;
+    width: 60vw;
+    height: 70vw;
   }
   /* 
    * Optional: Makes the sample page fill the window. 
