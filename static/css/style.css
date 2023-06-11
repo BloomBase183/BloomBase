@@ -8,6 +8,11 @@
   #map2 {
     height: 300px;
   }
+
+  #searchmap {
+    height: 150px;
+    width: 300px;
+  }
   /* 
    * Optional: Makes the sample page fill the window. 
    */

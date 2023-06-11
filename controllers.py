@@ -75,6 +75,7 @@ def index():
         interest_url=URL('interest_list'),
         drop_interest_url=URL('drop_interest'),
         post_note_url=URL('add_note', signer=url_signer),
+        observations_by_name=URL('observations_by_name'),
     )
 
 @action('search')
@@ -85,8 +86,25 @@ def search():
                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
                     (db.observations_na.common_name.contains(user_input, all=True)) |
                     (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select()
-    print(search_results)
-    return dict(search_results=search_results.as_list())
+    # print(search_results)
+    names = list(set([(x.get('common_name'), x.get('scientific_name')) for x in search_results]))
+    newlist = []
+    for i in names:
+        # print(i)
+        newdict = dict()
+        # print('eachloop\n\n\n')
+        # loclist = [(x.get("latitude"), x.get('longitude')) for x in search_results if (x.get('common_name'), x.get('scientific_name')) == i]
+        images = [(x.get("image_url")) for x in search_results if (x.get('common_name'), x.get('scientific_name')) == i and x.get('image_url')!='']
+        # print(images)
+        newdict['common_name'] = i[0]
+        newdict['scientific_name'] = i[1]
+        newdict['image_url'] = images[0]
+        # print(loclist)
+        newlist.append(newdict)
+        print('\n\n')
+    print(newlist)
+
+    return dict(search_results=newlist)
 
 
 
@@ -411,6 +429,18 @@ def grab_observations():
         observations=a
     )
 
+@action('observations_by_name', method=["GET"])
+@action.uses(db, url_signer, auth)
+def observations_by_name():
+    thename = request.params.get('obname')
+    
+    #print(longmax, longmin, latmax, latmin)
+    print(thename)
+    a = db(db.observations_na.common_name == thename).select().as_list()
+    print(a)
+    return dict(
+        observations=a
+    )
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
