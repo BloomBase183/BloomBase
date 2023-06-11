@@ -195,7 +195,7 @@ def add_interest():
     species_scientific_name = request.params.get('scientific_name')
     print(species_image)
     # Checking if species is in database
-    species_exist = db(db.observations_na.id == species_id).select().first()
+    species_exist = db(db.observations_na.common_name == species_name).select().first()
     # Checking if species is already added as an interest from user
     in_interest = db((db.interests.user_email == get_user_email()) &
                      # (db.interests.species_id == species_id) &
