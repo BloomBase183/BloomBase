@@ -17,12 +17,12 @@
 
 
 <div class="section" id="vue-target">
-  <button class="button is-link" @click="interonly">FILTER TO INTEREESTS</button>
+  <!--<button class="button is-link" @click="interonly">FILTER TO INTEREESTS</button>-->
 
 
   <!--Section for Search bar -->
-  <div class="columns">
-    <div class="column is-7">
+  <!--<div class="columns is-centered">
+    <div class="column is-half">
       <p class="control has-icons-right">
         <input class="input is-rounded is-medium" type="text" v-model="query" @keydown="search" placeholder="Species">
         <span class="icon is-small is-right is-clickable" @click="clear_search">
@@ -30,9 +30,26 @@
         </span>
       </p>
     </div>
-  <!--Section for Search bar results -->
-  </div>
+  </div>-->
   
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="field is-grouped">
+        <p class="control is-expanded has-icons-right">
+          <input class="input" type="text" v-model="query" @keydown="search" placeholder="Species">
+          <span class="icon is-small is-right is-clickable" @click="clear_search">
+            <i class="fa fa-times-circle"></i>
+          </span>
+        </p>
+        <p class="control">
+          <button class="button is-link" @click="interonly">FILTER TO INTEREESTS</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <!--Section for Search bar results -->
   <div class="field">
     <div class="columns">
       <div class="column is-7">
