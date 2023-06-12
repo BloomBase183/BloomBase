@@ -258,12 +258,7 @@ let init = (app) =>{
     });
 
     app.data.map = map
-    const map2 = new Map(document.getElementById("map2"), {
-      center: { lat: 37.0902, lng: -100},
-      zoom: 10,
-      streetViewControl: false,
-      mapId: 'FnoteMap'
-    });
+
     console.log("mapping")
     infoWindow = new google.maps.InfoWindow();
    {
@@ -281,8 +276,7 @@ let init = (app) =>{
             infoWindow.open(map);
             map.setCenter(pos);
             map.setZoom(10);
-            map2.setCenter(pos);
-            map2.setZoom(10);
+
           },
           () => {
             handleLocationError(true, infoWindow, map.getCenter());
@@ -303,23 +297,7 @@ let init = (app) =>{
   // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
   
   // markerCluster.addMarkers(markers)
-  axios.get(getfieldnotes_url).then(function (r)  {
-    app.data.notes = r.data.field_notes
-    markers2 =  app.vue.notes.map(obs => {
-      console.log(obs)
-      const marker2 = new google.maps.Marker({
-        position: { lat: obs['latitude'], lng: obs['longitude']},
-        map: map2,
-      });
-      marker2.addListener("gmp-click", () => {
-        infoWindow.open(map2, marker2);
-        app.fnotepopup(obs);
-      });
-      // markerCluster.addMarkers([marker]);
-      return marker2;
-  })
-  // markers.splice(0,markers.length)
-  });
+
   // markers.splice(0,markers.length)
   //  markerCluster.clearMarkers();
   let markerCluster = new markerClusterer.MarkerClusterer({ empty_markers, map });
