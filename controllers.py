@@ -53,7 +53,6 @@ mapkey = rows[0].get('maps')
 @action.uses('index.html', db, session, url_signer, auth)
 def index():
     # Section is for the searchBar component
-
     user_input = request.params.get('user_input')
     if user_input == "" or user_input is None:
         results = db(db.observations_na).select(limitby=(0,10))
