@@ -120,7 +120,7 @@ def search():
 @action('admin')
 @action.uses('admin.html', db, auth.enforce(), url_signer.verify(), session)
 def admin():
-    elist = ["alasch@ucsc.edu","jlavi@ucsc.edu", "dcreech@ucsc.edu", "yzhao172@ucsc.edu"]
+    elist = ["alasch@ucsc.edu","jlavi@ucsc.edu", "dcreech@ucsc.edu", "yzhao172@ucsc.edu", "tsartor@ucsc.edu"]
     if not (get_user_email() in elist):
         redirect("index")
     return dict(
