@@ -44,16 +44,23 @@ url_signer = URLSigner(session)
 
 
 # auth = EmailAuth(session, url_signer)
+f = open(JSON_FILE)
 
+rows = json.load(f)
+mapkey = rows[0].get('maps')
 
 @action('index')
 @action.uses('index.html', db, session, url_signer, auth)
 def index():
     # Section is for the searchBar component
-    f = open(JSON_FILE)
-
-    rows = json.load(f)
-    mapkey = rows[0].get('maps')
+    user_input = request.params.get('user_input')
+    if user_input == "" or user_input is None:
+        results = db(db.observations_na).select(limitby=(0,10))
+    else:
+        results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
+                (db.observations_na.scientific_name.contains(user_input, all=True)) |
+                (db.observations_na.common_name.contains(user_input, all=True)) |
+                (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
     return dict(
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
@@ -75,6 +82,7 @@ def index():
         dislike_post_url=URL('dislike_post'),
         update_likes_url=URL('update_likes'),
         update_dislikes_url=URL('update_dislikes'),
+        observations_by_name=URL('observations_by_name'),
     )
 
 @action('search')
@@ -84,9 +92,26 @@ def search():
     search_results = db((db.observations_na.species_guess.contains(user_input, all=True)) |
                     (db.observations_na.scientific_name.contains(user_input, all=True)) |
                     (db.observations_na.common_name.contains(user_input, all=True)) |
-                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0, 10))
+                    (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select()
+    # print(search_results)
+    names = list(set([(x.get('common_name'), x.get('scientific_name')) for x in search_results]))
+    newlist = []
+    for i in names:
+        # print(i)
+        newdict = dict()
+        # print('eachloop\n\n\n')
+        # loclist = [(x.get("latitude"), x.get('longitude')) for x in search_results if (x.get('common_name'), x.get('scientific_name')) == i]
+        images = [(x.get("image_url")) for x in search_results if (x.get('common_name'), x.get('scientific_name')) == i and x.get('image_url')!='']
+        # print(images)
+        newdict['common_name'] = i[0]
+        newdict['scientific_name'] = i[1]
+        newdict['image_url'] = images[0]
+        # print(loclist)
+        newlist.append(newdict)
+        print('\n\n')
+    print(newlist)
 
-    return dict(search_results=search_results.as_list())
+    return dict(search_results=newlist)
 
 
 
@@ -174,7 +199,7 @@ def add_interest():
     species_scientific_name = request.params.get('scientific_name')
     print(species_image)
     # Checking if species is in database
-    species_exist = db(db.observations_na.id == species_id).select().first()
+    species_exist = db(db.observations_na.common_name == species_name).select().first()
     # Checking if species is already added as an interest from user
     in_interest = db((db.interests.user_email == get_user_email()) &
                      # (db.interests.species_id == species_id) &
@@ -223,7 +248,9 @@ def profile():
         # interests are empty for now
         interests=[],
         url_signer=url_signer,
-        auth=auth
+        auth=auth,
+        MAPS_API_KEY=mapkey,
+        getfieldnotes_url=URL('get_fieldNotes'),
     )
 
 
@@ -571,6 +598,18 @@ def grab_observations():
         observations=a
     )
 
+@action('observations_by_name', method=["GET"])
+@action.uses(db, url_signer, auth)
+def observations_by_name():
+    thename = request.params.get('obname')
+    
+    #print(longmax, longmin, latmax, latmin)
+    print(thename)
+    a = db(db.observations_na.common_name == thename).select().as_list()
+    print(a)
+    return dict(
+        observations=a
+    )
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")

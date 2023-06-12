@@ -278,7 +278,13 @@ let init = (app) =>{
     observation_rating: 0,
     rated_density: false,
     interests: [],
+    clicked_search: null,
+    loclist: [],
+    imgl: [],
+    sldshwind: 0,
+    srchobs: [],  
   };
+
   app.methods = {
     post_note: app.post_note,
     get_observations: app.get_observations,
@@ -301,6 +307,8 @@ let init = (app) =>{
     update_likes: app.update_likes,
     dislike: app.dislike,
     update_dislikes: app.update_dislikes,
+    srchpopup: app.srchpopup,
+    desrchpop: app.desrchpop,
   };
 
   app.vue = new Vue({
@@ -308,6 +316,7 @@ let init = (app) =>{
     data: app.data,
     methods: app.methods
   });
+
   async function initMap() {
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -319,13 +328,9 @@ let init = (app) =>{
       streetViewControl: false,
       mapId: 'MainMap'
     });
+
     app.data.map = map
-    const map2 = new Map(document.getElementById("map2"), {
-      center: { lat: 37.0902, lng: -100},
-      zoom: 10,
-      streetViewControl: false,
-      mapId: 'FnoteMap'
-    });
+
     console.log("mapping")
     infoWindow = new google.maps.InfoWindow();
    {
@@ -343,8 +348,7 @@ let init = (app) =>{
             infoWindow.open(map);
             map.setCenter(pos);
             map.setZoom(10);
-            map2.setCenter(pos);
-            map2.setZoom(10);
+
           },
           () => {
             handleLocationError(true, infoWindow, map.getCenter());
@@ -356,7 +360,7 @@ let init = (app) =>{
     };
     console.log("waiting points")
 
-console.log('got the points')
+  console.log('got the points')
   // console.log(app.vue.observations)
 
   let markers = [];
@@ -365,23 +369,8 @@ console.log('got the points')
   // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
   
   // markerCluster.addMarkers(markers)
-  axios.get(getfieldnotes_url).then(function (r)  {
-    app.data.notes = r.data.field_notes
-    markers2 =  app.vue.notes.map(obs => {
-      console.log(obs)
-      const marker2 = new google.maps.Marker({
-        position: { lat: obs['latitude'], lng: obs['longitude']},
-        map: map2,
-      });
-      marker2.addListener("gmp-click", () => {
-        infoWindow.open(map2, marker2);
-        app.fnotepopup(obs);
-      });
-      // markerCluster.addMarkers([marker]);
-      return marker2;
-  })
+
   // markers.splice(0,markers.length)
-  });
   //  markerCluster.clearMarkers();
   let markerCluster = new markerClusterer.MarkerClusterer({ empty_markers, map });
    google.maps.event.addListener(map, "idle", () => {
@@ -422,7 +411,7 @@ console.log('got the points')
     // markers.splice(0,markers.length)
     // markerCluster.addMarkers(markers);
 
-    // markerCluster.clearMarkers();
+    markerCluster.clearMarkers();
     console.log("log")
     console.log(markerCluster.markers.length)
     // markerCluster.markers.splice(0,markerCluster.markers.length)
@@ -470,5 +459,58 @@ app.interonly = function() {
   app.data.map.setZoom(app.data.map.getZoom());
   app.data.filterinterests = !app.data.filterinterests;
 };
+async function searchmapstart () {
+  const { Map } = await google.maps.importLibrary("maps");
+  app.vue.searchmap = new Map(document.getElementById("searchmap"), {
+    center: { lat: 37.0902, lng: -100},
+    zoom: 3,
+    streetViewControl: false,
+    mapId: 'searchmap'
+  });
+}
+app.srchpopup = (obs) =>{
+  window.searchmapstart = searchmapstart;
+  console.log(obs);
+  //Put the popup code in here
+  app.vue.clicked_search = obs;
+  console.log('searchpopping')
+  app.vue.sldshwind = 0;
+  console.log(obs.common_name)
+  let daname = obs.common_name
+  searchmapstart();
+  let markers = []
+  axios.get(observations_by_name, {params: {
+    obname: daname
+  }})
+  .then(function (r)  {
+    // markerCluster.clearMarkers();
+    app.vue.srchobs = []
+    app.vue.srchobs = r.data.observations
+    // console.log(app.vue.observations)
+    markers =  app.vue.srchobs.map(obs => {
+      console.log("the obs is")
+      console.log(obs)
+      const marker = new google.maps.Marker({
+        position: { lat: obs['latitude'], lng: obs['longitude']},
+        map: app.vue.searchmap,
+      });
+      // console.log(obs)
+      marker.addListener("click", () => {
+        // infoWindow.setContent(obs['common_name']);
+        // infoWindow.open(map, marker);
+        // console.log(obs)
+        // console.log('clicked')
+        app.popup(obs);
+      });
+      // markerCluster.addMarkers([marker]);
+      return marker;
+  })
+  
+});
 
+}
+app.desrchpop = () => {
+  app.vue.clicked_search = null;
+  app.vue.srchobs = [];
+}
 init(app);

@@ -1,5 +1,39 @@
 [[extend 'layout.html']]
+<link rel="stylesheet" type="text/css" href="css/style2.css" />
+<div class="section" id="vue-target">
 
+
+<div v-if="currentnote" class="modal is-active">
+  <div class="modal-background" @click="close"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title is-size-3">{{ currentnote.title }}
+      </p>
+      <button class="delete" aria-label="close" @click="close"></button>
+    </header>
+    <section class="modal-card-body">
+      <div class="columns">
+        <div class="column is-6">
+          
+        </div>
+        <div class="column is-6">
+          <div class="box modal-box" style="width: 300px; height: 150px;">
+            <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
+            <p class="is-size-5 is-flex">{{currentnote.longitude}} {{currentnote.latitude}}</p>
+          </div>
+          <div  class="box modal-box" style="width: 300px; height: 150px;">
+            <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
+          </div>
+        </div>
+      </div>      
+    </section>
+      
+      <!-- Include additional information as needed -->
+  </div>
+</div>
+<title>Fnote Map</title>
+<div class="section" id="map2"></div>
+</div>
 <section class="section">
 
     [[if current_user:]]
@@ -39,7 +73,18 @@
             </div>
         </div>
     </div>
+    
     [[else:]]
     <div>Profile Not Found</div>
     [[pass]]
 </section>
+
+[[block page_scripts]]
+<script>
+  let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
+  let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
+</script>
+<script type="module" src="js/profile.js"></script>
+<script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+  ({key: "[[=XML(MAPS_API_KEY)]]", v: "beta"});</script>
+[[end]]
