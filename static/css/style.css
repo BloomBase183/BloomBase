@@ -3,10 +3,11 @@
  * that contains the map. 
  */
  #map {
-    height: 300px;
+    width: 50vw;
+    height: 75vw;
   }
   #map2 {
-    height: 300px;
+    width: 50vw;
   }
 
   #searchmap {
