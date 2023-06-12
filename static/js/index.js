@@ -13,13 +13,18 @@ let init = (app) =>{
     console.log(obs);
     //Put the popup code in here
     app.vue.clicked_observation = obs;
+    //As part of the popup we calculate the average density of the flower
+    app.average_density(obs.id);
+    app.has_rated_density(obs.id);
     console.log(obs)
     app.fnote(obs);
   }
 
-
   app.depop = () => {
     app.vue.clicked_observation = null;
+    //clear the average density
+    app.vue.observation_average = -1;
+    app.vue.rated_density = false;
     app.vue.notes = [];
   };
 
@@ -42,6 +47,7 @@ let init = (app) =>{
         app.vue.interests = l.data.interests;
       });
   };
+
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
@@ -51,6 +57,7 @@ let init = (app) =>{
     initMap();
     // console.log("done")
   };
+
   app.get_observations = function () {
     axios.get(observations_url)
       .then(function (r) {
@@ -139,8 +146,64 @@ let init = (app) =>{
     });
   };
 
+
+  app.rate_density = function (rating, obs_id, obs_date) {
+    //Stores a user rating on a bloom
+    console.log(rating)
+    axios.post(rate_density_url, {rating: rating, id: obs_id, date: obs_date}).then(response => {
+      console.log('Density added successfully');
+      app.average_density(obs_id);
+      app.has_rated_density(obs_id);
+    })
+    .catch(error => {
+      console.error('Failed to rate observation Density', error)
+    });
+  };
+
+  app.average_density = function(obs_id) {
+    //console.log("Got here")
+    axios.post(average_density_url, {id: obs_id}).then(response => {
+      console.log('average is:', response.data.average);
+      //set the average to the returned value
+      app.vue.observation_average = response.data.average;
+      return 1
+    })
+    .catch(error => {
+      console.error('Failed to get average', error)
+      //don't set the observation value so it stays at the default -1
+      return -1;
+    });
+  };
+
+  app.has_rated_density = function(obs_id) {
+    console.log("Checking if user has rated observation")
+    axios.post(has_rated_density_url, {id: obs_id}).then(response => {
+      //Sees if the user has rated it previously or not
+      app.vue.rated_density = response.data.rated;
+    })
+    .catch(error => {
+      console.error('Failed to check if the user has rated the observation before', error)
+    });
+  };
+
+
+  app.delete_observation_rating = function (obs_id){
+    axios.post(delete_observation_rating_url, {id: obs_id}).then(response =>{
+      console.log("deleted observation rating")
+      app.average_density(obs_id);
+      app.has_rated_density(obs_id);
+    });
+  };
+
+  app.edit_observation_rating = function (obs_rating, obs_id, obs_date){
+    axios.post(update_observation_rating_url, {id: obs_id, rating: obs_rating, observed_on: obs_date}).then(response =>{
+      console.log("updated observation rating")
+      app.average_density(obs_id);
+    });
+  };
+
   // updates the like count in field notes
-  app.update_like = function(response, fnote) {
+  app.update_likes = function(response, fnote) {
     axios.post(update_likes_url, {response:response, note: fnote})
       .then(r => {
         console.log("coo")
@@ -192,6 +255,7 @@ let init = (app) =>{
         console.error('Failed to drop interest', error)
       });
   };
+
   app.clear_search = function () {
     console.log("clicked")
     this.query = "";
@@ -211,8 +275,11 @@ let init = (app) =>{
     clicked_observation: null,
     filterinterests: false,
     notes: [],
-    interests: [],
     noteContent: "",
+    observation_average: -1,
+    observation_rating: 0,
+    rated_density: false,
+    interests: [],
     clicked_search: null,
     loclist: [],
     imgl: [],
@@ -231,6 +298,11 @@ let init = (app) =>{
     popup: app.popup,
     depop: app.depop,
     fnote: app.fnote,
+    rate_density: app.rate_density,
+    average_density: app.average_density,
+    has_rated_density: app.has_rated_density,
+    delete_observation_rating: app.delete_observation_rating,
+    edit_observation_rating: app.edit_observation_rating,
     interest_list: app.interest_list,
     drop_interest: app.drop_interest,
     like: app.like,
@@ -383,6 +455,7 @@ let init = (app) =>{
   };
   app.init()
 };
+
 app.interonly = function() {
   console.log(app.data.filterinterests)
   app.data.map.setZoom(app.data.map.getZoom());

@@ -71,11 +71,19 @@ db.define_table(
 )
 
 db.define_table(
+    #ratings of how well the bloom is happening
+    'observation_densities',
+    Field('user_email'),
+    Field('observation'),
+    Field('observation_rating', default=0),
+    Field('observed_on', 'date'),
+)
+
+db.define_table(
     'fnote_likes',
     Field('user_email', default=get_user_email),
     Field('field_note_id'),
     Field('is_liked', 'boolean', default=False, migrate=True),
-    
 )
 
 db.field_notes.user_email.readable = db.field_notes.user_email.writable = False

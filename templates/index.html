@@ -55,7 +55,9 @@
     </div>
   </div>
 
+
   <!--Section for Map and Your Interests-->
+
   <div class="field">
     <div class="columns">
       <link rel="stylesheet" type="text/css" href="css/style.css" />
@@ -90,7 +92,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- search popup -->
   <div v-if="clicked_search" class="modal is-active">
     <div class="modal-background" @click="depop"></div>
@@ -160,6 +162,19 @@
             </div>
           </div>
         </div>
+        <p class="is-size-3"> Observation Density</p>
+        <div class="button is-link"  v-if="observation_average >= 0"><span>Average Rating: {{observation_average}}</span></div>
+        <div class="button is-link"  v-if="observation_average < 0"><span>No Ratings Yet.</span></div>
+        <!--Only give the ability to rate observations to logged in users-->
+         [[if auth.session.get("_user_email"):]]
+        <div><input v-model="observation_rating" class="slider" step="1" min="0" max="10" value="0" type="range">{{observation_rating}}</div>
+        <!--If the user hasn't rated an observation yet give them the option to, otherwise let them edit/delete a previous observation rating-->
+        <div  v-if="rated_density === false"><button class="button is-success m-1" @click="rate_density(observation_rating, clicked_observation.id, clicked_observation.observed_on)" class="button is-success">Rate Density</button></div>
+        <!--Gives option to edit and delete rating-->
+        <div  v-if="rated_density === true"><button class="button is-warning m-1" @click="edit_observation_rating(observation_rating, clicked_observation.id, clicked_observation.observed_on)">Update Rating</button><button class="button is-danger m-1" @click="delete_observation_rating(clicked_observation.id)">Delete Rating</button></div>
+        [[else:]]
+        <div>Sign In to rate this Observation!</div>
+        [[pass]]
         <p class="is-size-3"> Field Notes</p>
         <div class="field">
           <textarea class="textarea m-1" id="noteTitle" placeholder="Title your notes!" rows="1"></textarea>
@@ -229,6 +244,11 @@
   let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
   let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
   let field_note_url = "[[=XML(field_notes_url)]]"
+  let rate_density_url = "[[=XML(rate_density_url)]]"
+  let average_density_url = "[[=XML(average_density_url)]]"
+  let has_rated_density_url = "[[=XML(has_rated_density_url)]]"
+  let delete_observation_rating_url = "[[=XML(delete_observation_rating_url)]]"
+  let update_observation_rating_url = "[[=XML(update_observation_rating_url)]]"
   let interest_url = "[[=XML(interest_url)]]"
   let drop_interest_url = "[[=XML(drop_interest_url)]]"
   let like_post_url = "[[=XML(like_post_url)]]"
@@ -246,4 +266,4 @@
 
 
 
- 
+
