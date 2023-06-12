@@ -469,7 +469,6 @@ app.interpopup = (intr) => {
   thing.scientific_name = intr.scientific_name
   thing.image_url = intr.image
   app.vue.clicked_search = thing;
-  console.log(intr)
   searchmapstart();
   let markers = []
   axios.get(observations_by_name, {params: {
