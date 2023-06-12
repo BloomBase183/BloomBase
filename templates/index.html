@@ -17,39 +17,53 @@
 
 <link rel="stylesheet" type="text/css" href="css/style.css" />
 <div class="section" id="vue-target">
-  <button class="button is-link" @click="interonly">FILTER TO INTEREESTS</button>
 
-
-  <!--Section for Search bar -->
-  <div class="columns">
-    <div class="column is-7">
-      <p class="control has-icons-right">
-        <input class="input is-rounded is-medium" type="text" v-model="query" @keydown="search" placeholder="Species">
-        <span class="icon is-small is-right is-clickable" @click="clear_search">
-          <i class="fa fa-times-circle"></i>  
-        </span>
-      </p>
+  <!--Section for Search bar and Filter button -->
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="field is-grouped">
+        <p class="control is-expanded has-icons-right">
+          <input class="input is-rounded" type="text" v-model="query" @keydown="search" placeholder="Species">
+          <span class="icon is-small is-right is-clickable" @click="clear_search">
+            <i class="fa fa-times-circle"></i>
+          </span>
+        </p>
+        <p class="control">
+          <button class="button is-info is-light is-rounded" @click="interonly">Fiter to Interests</button>
+        </p>
+      </div>
     </div>
-  <!--Section for Search bar results -->
   </div>
-  
+
+  <!--Section for Search bar results -->
+  <div class="column is-7">
+    <div class="box" v-for="result in search_results" @click="popup(result)">
+      <div class="media">
+        <div class="media-left">
+          <figure class="image">
+            <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
+          </figure>
+        </div>
+        <div class="media-content">
+          <p class="title is-5">{{result.common_name}}</p>
+          <p class="title is-6"><i>{{result.scientific_name}}</i></p>
+        </div>
+        <div class="media-right">
+          <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Section for Map and Your Interests-->
   <div class="field">
     <div class="columns">
+      <link rel="stylesheet" type="text/css" href="css/style.css" />
       <div class="column is-7">
-        <div class="box" v-for="result in search_results" @click="srchpopup(result)">
+        <div class="box">
           <div class="media">
-            <div class="media-left">
-              <figure class="image">
-                <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
-              </figure>
-            </div>
-            <div class="media-content">
-              <p class="title is-5">{{result.common_name}}</p>
-              <p class="title is-6"><i>{{result.scientific_name}}</i></p>
-            </div>
-            <div class="media-right">
-              <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
-            </div>
+            <title>Simple Map</title>
+            <div class="section" id="map"></div>
           </div>
         </div>
       </div>
@@ -197,16 +211,12 @@
     
   </div>
     <!--Section for Goolge Maps -->
+    <!--<link rel="stylesheet" type="text/css" href="css/style.css" />
+      <div class="column">
+        <title>Simple Map</title>
+        <div class="section" id="map"></div>
+      </div>-->
 
-    <div class="column">
-  
-    <title>Simple Map</title>
-      <div class="section" id="map"></div>
- 
-    <title>Fnote Map</title>
-      <div class="section" id="map2"></div>
-  </div>
-</div>
 </div>
   
 
