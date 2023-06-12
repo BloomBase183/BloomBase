@@ -23,13 +23,13 @@
     <div class="column is-half">
       <div class="field is-grouped">
         <p class="control is-expanded has-icons-right">
-          <input class="input" type="text" v-model="query" @keydown="search" placeholder="Species">
+          <input class="input is-rounded" type="text" v-model="query" @keydown="search" placeholder="Species">
           <span class="icon is-small is-right is-clickable" @click="clear_search">
             <i class="fa fa-times-circle"></i>
           </span>
         </p>
         <p class="control">
-          <button class="button is-link" @click="interonly">FILTER TO INTEREESTS</button>
+          <button class="button is-info is-light is-rounded" @click="interonly">Fiter to Interests</button>
         </p>
       </div>
     </div>
