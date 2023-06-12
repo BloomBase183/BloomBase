@@ -19,6 +19,7 @@ let init = (app) =>{
     console.log(obs)
     app.fnote(obs);
   }
+
   app.depop = () => {
     app.vue.clicked_observation = null;
     //clear the average density
@@ -40,21 +41,30 @@ let init = (app) =>{
       });
   };
 
+  app.interest_list = function () {
+    axios.get(interest_url)
+      .then(function(l) {
+        app.vue.interests = l.data.interests;
+      });
+  };
+
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
     // console.log(app.vue.observations)
     // console.log("getobs")
-    
+    app.interest_list();
     initMap();
     // console.log("done")
   };
+
   app.get_observations = function () {
     axios.get(observations_url)
       .then(function (r) {
-        app.vue.observations = r.data.observations
+        app.vue.observations = r.data.observations;
      })
   };
+
 
   app.search = function () {
     if (app.vue.query.length > 1) {
@@ -86,13 +96,54 @@ let init = (app) =>{
   };
 
   app.add_interest = function (result) {
-    axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name}).then(response => {
+    axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name, scientific_name: result.scientific_name, species_image: result.image_url})
+    .then(response => {
       console.log('Interest added successfully');
+      app.interest_list();
     })
     .catch(error => {
       console.error('Failed to add interest', error)
+    });    
+    //app.interest_list();
+  };
+
+  // Func drops the given interest in the db
+  app.drop_interest = function (interest){
+    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+      .then(response => {
+        console.log(response);
+        app.interest_list();
+      })
+      .catch(error => {
+        console.error('Failed to drop interest', error);
+      });
+  };
+
+  // displays the like number on ui
+  app.like = function (fnote) {
+    axios.post(like_post_url, {id: fnote.id})
+    .then(response => {
+      //will fill with get likes count function
+      
+      if (response.data === true) {
+        fnote.like_count += 1;
+      } 
+      else if (response.data === false) {
+        console.log("already liked")
+      } else {
+        fnote.like_count += 1;
+        fnote.dislike_count -= 1;
+        console.log("like_count " + fnote.like_count);
+        console.log("dislike_count " + fnote.dislike_count);
+      }
+      
+      app.update_like(response.data, fnote)
+    })
+    .catch(error => {
+      console.error('Failed to like field note', error);
     });
   };
+
 
   app.rate_density = function (rating, obs_id, obs_date) {
     //Stores a user rating on a bloom
@@ -149,6 +200,60 @@ let init = (app) =>{
     });
   };
 
+  // updates the like count in field notes
+  app.update_likes = function(response, fnote) {
+    axios.post(update_likes_url, {response:response, note: fnote})
+      .then(r => {
+        console.log("coo")
+        
+      });
+  };
+
+  // displays the dislike number on ui
+  app.dislike = function (fnote) {
+    axios.post(dislike_post_url, {id: fnote.id})
+    .then(response => {
+      //will fill with get dislikes count function
+      
+      if (response.data === true) {
+        fnote.dislike_count += 1;
+      } 
+      else if (response.data === false){
+        console.log("already disliked")
+      } else {
+        fnote.like_count -= 1;
+        fnote.dislike_count += 1;
+        console.log("like_count " + fnote.like_count);
+        console.log("dislike_count " + fnote.dislike_count);
+      }
+    
+      app.update_dislikes(response.data, fnote)
+      
+    })
+    .catch(error => {
+      console.error('Failed to dislike field note', error);
+    });
+  };
+
+  // updates the field note dislike field 
+  app.update_dislikes = function(response, fnote) {
+    axios.post(update_dislikes_url, {response:response, note: fnote})
+      .then(r => {
+      });
+  };
+
+  
+  app.drop_interest = function (interest){
+    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+      .then(response => {
+        console.log(response);
+        app.interest_list();
+      })
+      .catch(error => {
+        console.error('Failed to drop interest', error)
+      });
+  };
+
   app.clear_search = function () {
     console.log("clicked")
     this.query = "";
@@ -172,6 +277,7 @@ let init = (app) =>{
     observation_average: -1,
     observation_rating: 0,
     rated_density: false,
+    interests: [],
   };
   app.methods = {
     post_note: app.post_note,
@@ -189,6 +295,12 @@ let init = (app) =>{
     has_rated_density: app.has_rated_density,
     delete_observation_rating: app.delete_observation_rating,
     edit_observation_rating: app.edit_observation_rating,
+    interest_list: app.interest_list,
+    drop_interest: app.drop_interest,
+    like: app.like,
+    update_likes: app.update_likes,
+    dislike: app.dislike,
+    update_dislikes: app.update_dislikes,
   };
 
   app.vue = new Vue({
@@ -352,6 +464,7 @@ console.log('got the points')
   };
   app.init()
 };
+
 app.interonly = function() {
   console.log(app.data.filterinterests)
   app.data.map.setZoom(app.data.map.getZoom());

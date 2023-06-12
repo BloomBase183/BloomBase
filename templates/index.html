@@ -32,27 +32,51 @@
     </div>
   <!--Section for Search bar results -->
   </div>
-  
-  <div class="field" v-for="result in search_results">
-    <div class="column is-7">
-      <div class="box" @click="popup(result)">
-        <div class="media">
-          <div class="media-left">
-            <figure class="image">
-              <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
-            </figure>
-          </div>
-          <div class="media-content">
-            <p class="title is-5">{{result.common_name}}</p>
-            <p class="title is-6"><i>{{result.scientific_name}}</i></p>
-          </div>
-          <div class="media-right is-centered">
-            <button class="button is-hoverable is-centered" @click.stop="add_interest(result)">Add Interest</button>
+
+  <div class="field">
+    <div class="columns">
+      <div class="column is-7">
+        <div class="box" v-for="result in search_results" @click="popup(result)">
+          <div class="media">
+            <div class="media-left">
+              <figure class="image">
+                <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
+              </figure>
+            </div>
+            <div class="media-content">
+              <p class="title is-5">{{result.common_name}}</p>
+              <p class="title is-6"><i>{{result.scientific_name}}</i></p>
+            </div>
+            <div class="media-right">
+              <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+            </div>
           </div>
         </div>
       </div>
+      <div class="column is-5">
+        <div class="box modal-box">
+          <h1 class="is-size-3 has-text-weight-bold">Your Interests</h1>
+          <div v-for="interest in interests" class="box ">
+            <div class="media">
+              <div class="media-left">
+                <figure class="image">
+                  <img :src="interest.image" :alt="interest.species_name" style="height: 64px; width: 64px;"/>
+                </figure>
+              </div>
+              <div class="media-content">
+                <p class="title is-5">{{interest.species_name}}</p>
+                <p class="title is-6"><i>{{interest.scientific_name}}</i></p>
+              </div>
+              <div class="media-right">
+                <button class="button is-hoverable" @click.stop="drop_interest(interest)">Remove Interest</button>
+              </div>
+          </div>
+        </div>
+      </div>
+      
     </div>
   </div>
+
 
   <!-- Section for pop-up-->
   <div v-if="clicked_observation" class="modal is-active">
@@ -121,15 +145,15 @@
               <div class="level-left">
                 <a class="level-item" aria-label="reply">
                   <span class="icon is-small">
-                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                    <i class="fa fa-thumbs-up" @click="like(note)" aria-hidden="true"></i>
                   </span>
-                  <span class="ml-1">4</span>
+                  <span class="ml-1">{{note.like_count}}</span>
                 </a>
                 <a class="level-item" aria-label="retweet">
                   <span class="icon is-small">
-                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>
+                    <i class="fa fa-thumbs-down" @click="dislike(note)" aria-hidden="true"></i>
                   </span>
-                  <span class="ml-1">1</span>
+                  <span class="ml-1">{{note.dislike_count}}</span>
                 </a>
               </div>
             </nav>
@@ -175,6 +199,12 @@
   let has_rated_density_url = "[[=XML(has_rated_density_url)]]"
   let delete_observation_rating_url = "[[=XML(delete_observation_rating_url)]]"
   let update_observation_rating_url = "[[=XML(update_observation_rating_url)]]"
+  let interest_url = "[[=XML(interest_url)]]"
+  let drop_interest_url = "[[=XML(drop_interest_url)]]"
+  let like_post_url = "[[=XML(like_post_url)]]"
+  let dislike_post_url = "[[=XML(dislike_post_url)]]"
+  let update_likes_url = "[[=XML(update_likes_url)]]"
+  let update_dislikes_url = "[[=XML(update_dislikes_url)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
@@ -185,4 +215,4 @@
 
 
 
- 
+
