@@ -306,7 +306,7 @@ let init = (app) =>{
     interest_list: app.interest_list,
     drop_interest: app.drop_interest,
     like: app.like,
-    update_likes: app.update_like,
+    update_likes: app.update_likes,
     dislike: app.dislike,
     update_dislikes: app.update_dislikes,
     srchpopup: app.srchpopup,
@@ -479,6 +479,7 @@ async function obsmapstart (obs) {
     streetViewControl: false,
     mapId: 'obsmap'
   });
+  console.log("obsmapping")
   new google.maps.Marker({
     position: { lat: obs['latitude'], lng: obs['longitude']},
     map: app.vue.obsmap,
