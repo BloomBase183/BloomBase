@@ -15,7 +15,7 @@
 
 
 
-
+<link rel="stylesheet" type="text/css" href="css/style.css" />
 <div class="section" id="vue-target">
   <button class="button is-link" @click="interonly">FILTER TO INTEREESTS</button>
 
@@ -26,7 +26,7 @@
       <p class="control has-icons-right">
         <input class="input is-rounded is-medium" type="text" v-model="query" @keydown="search" placeholder="Species">
         <span class="icon is-small is-right is-clickable" @click="clear_search">
-          <i class="fa fa-times-circle"></i>
+          <i class="fa fa-times-circle"></i>  
         </span>
       </p>
     </div>
@@ -36,7 +36,7 @@
   <div class="field">
     <div class="columns">
       <div class="column is-7">
-        <div class="box" v-for="result in search_results" @click="popup(result)">
+        <div class="box" v-for="result in search_results" @click="srchpopup(result)">
           <div class="media">
             <div class="media-left">
               <figure class="image">
@@ -77,7 +77,50 @@
     </div>
   </div>
   
+  <!-- search popup -->
+  <div v-if="clicked_search" class="modal is-active">
+    <div class="modal-background" @click="depop"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title is-size-3">{{ clicked_search.common_name }}
+          <span class="is-size-6"> ({{ clicked_search.scientific_name }})</span>
+        </p>
+        <button class="delete" aria-label="close" @click="desrchpop"></button>
+      </header>
+      <section class="modal-card-body">
+        <div class="columns">
+          <div class="column is-6">
+            <img :src="clicked_search.image_url" :alt="clicked_search.common_name" style="height: 326px; width: 312px;"/>
+          </div>
+          <div class="column is-6">
+            <div  class="box modal-box" style="width: 300px; height: 300px;">
+              <h2 class="is-size-3 is-flex is-align-items-center">Observations Map</h2>
+              <title>Search Map</title>
+                <div class="section" id="searchmap"></div>
+            </div>
+          </div>
+        </div>
 
+        <p class="is-size-3"> Observations</p>
+        <div class="box modal-box" v-for="obs in srchobs">
+          <nav class="level is-mobile" @click="popup(obs)">
+            <div class="level-left">
+              <span class="is-size-5">{{obs.common_name}}</span>
+              
+            </div>
+            <div class="level-right">
+              <span class="level-item">
+                {{obs.observed_on}}
+              </span>
+            </div>
+            <div class="box modal-box">
+              <img :src="clicked_search.image_url" :alt="clicked_search.common_name" style="height: 50px; width: 50px;"/>
+            </div>
+          </nav>
+        </div>
+      </section>
+    </div>
+  </div>
   <!-- Section for pop-up-->
   <div v-if="clicked_observation" class="modal is-active">
     <div class="modal-background" @click="depop"></div>
@@ -154,21 +197,16 @@
     
   </div>
     <!--Section for Goolge Maps -->
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
+
     <div class="column">
   
     <title>Simple Map</title>
       <div class="section" id="map"></div>
-    </div>
+ 
     <title>Fnote Map</title>
       <div class="section" id="map2"></div>
-    </div>
-    <div class="block">
-      <div class="section" id="vue-target">
-        <div class="has-text-weight-bold is-size-3">TESTINGG</div>
-      </div>
-    </div>
-
+  </div>
+</div>
 </div>
   
 
@@ -187,6 +225,7 @@
   let dislike_post_url = "[[=XML(dislike_post_url)]]"
   let update_likes_url = "[[=XML(update_likes_url)]]"
   let update_dislikes_url = "[[=XML(update_dislikes_url)]]"
+  let observations_by_name = "[[=XML(observations_by_name)]]"
 </script>
 <script type="module" src="js/index.js"></script>
 <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
