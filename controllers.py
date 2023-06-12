@@ -61,8 +61,6 @@ def index():
                 (db.observations_na.scientific_name.contains(user_input, all=True)) |
                 (db.observations_na.common_name.contains(user_input, all=True)) |
                 (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
-    rows = json.load(f)
-    mapkey = rows[0].get('maps')
     return dict(
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
