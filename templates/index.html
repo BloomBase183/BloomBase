@@ -137,12 +137,9 @@
             <img :src="clicked_observation.image_url" :alt="clicked_observation.species_guess" style="height: 326px; width: 312px;"/>
           </div>
           <div class="column is-6">
-            <div class="box modal-box" style="width: 300px; height: 150px;">
-              <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
-              <p class="is-size-5 is-flex">{{clicked_observation.longitude}} {{clicked_observation.latitude}}</p>
-            </div>
-            <div  class="box modal-box" style="width: 300px; height: 150px;">
-              <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
+            <div class="box modal-box" style="width: 300px; height: 300px;">
+              <title>Observations Map</title>
+              <div class="section" id="obsmap"></div>
             </div>
           </div>
         </div>

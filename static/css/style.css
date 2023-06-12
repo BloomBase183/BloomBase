@@ -13,6 +13,11 @@
     height: 150px;
     width: 300px;
   }
+  
+  #obsmap {
+    height: 300px;
+    width: 300px;
+  }
   /* 
    * Optional: Makes the sample page fill the window. 
    */
