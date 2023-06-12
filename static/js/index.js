@@ -470,6 +470,21 @@ async function searchmapstart () {
     mapId: 'searchmap'
   });
 }
+async function obsmapstart (obs) {
+
+  const { Map } = await google.maps.importLibrary("maps");
+  app.vue.obsmap = new Map(document.getElementById("obsmap"), {
+    center: { lat: 37.0902, lng: -100},
+    zoom: 3,
+    streetViewControl: false,
+    mapId: 'obsmap'
+  });
+  new google.maps.Marker({
+    position: { lat: obs['latitude'], lng: obs['longitude']},
+    map: app.vue.obsmap,
+  });
+
+}
 app.srchpopup = (obs) =>{
   window.searchmapstart = searchmapstart;
   console.log(obs);
@@ -511,6 +526,17 @@ app.srchpopup = (obs) =>{
 });
 
 }
+app.popup = (obs) =>{
+  window.obsmapstart = obsmapstart;
+  console.log(obs);
+
+  //Put the popup code in here
+  app.vue.clicked_observation = obs;
+  obsmapstart(obs);
+
+  console.log(obs)
+  app.fnote(obs);
+};
 app.desrchpop = () => {
   app.vue.clicked_search = null;
   app.vue.srchobs = [];
