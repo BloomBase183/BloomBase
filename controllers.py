@@ -410,32 +410,49 @@ def delete_contact(contact_id=None):
     db(db.interests.id == contact_id).delete()
     redirect(URL('index'))
 
-
-@action('get_observations')
+@action('get_observations_for_days')
 @action.uses('admin.html', db)
-def get_observations():
-    today = datetime.date.today().strftime('%Y-%m-%d')
-    if not db(db.observations_na.observed_on == today).select().first():
-        url = 'https://api.inaturalist.org/v1/observations'
-        query_params = {
-            'has[]': 'photos',
-            'quality_grade': 'research',
-            'identifications': 'most_agree',
-            'captive': 'False',
-            'geoprivacy': 'open',
-            'taxon_geoprivacy': 'open',
-            'iconic_taxa[]': 'Plantae',
-            'place_id': '97394',
-            'per_page': '200',
-            'date': f"{datetime.date.today().strftime('%Y-%m-%d')}",
-            'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
-                      'taxon.preferred_common_name,taxon.iconic_taxon_name',
-        }  # 'date': f"{datetime.date.today().strftime('%Y-%m-%d')}"
+def get_observations_for_days(num_days):
+    today = datetime.date.today()
+    for i in range(num_days):
+        day = today - datetime.timedelta(days=i)
+        get_observations(day)
+
+
+def get_observations(day):
+    date = day.strftime('%Y-%m-%d')
+    url = 'https://api.inaturalist.org/v1/observations'
+    query_params = {
+        'has[]': 'photos',
+        'quality_grade': 'research',
+        'identifications': 'most_agree',
+        'captive': 'False',
+        'geoprivacy': 'open',
+        'taxon_geoprivacy': 'open',
+        'iconic_taxa[]': 'Plantae',
+        'place_id': '97394',
+        'per_page': '200',
+        'date': date,
+        'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
+                  'taxon.preferred_common_name,taxon.iconic_taxon_name',
+    }
+    response = requests.get(url, params=query_params)
+    data = response.json()
+    total_pages = data.get('total_pages', 1)  # Default to 1 if total_pages is not present in the response
+    observations = data['results']
+    error = False
+    page = 2  # Start from page 2 since we already fetched the first page
+    while page <= total_pages:
+        query_params['page'] = page
         response = requests.get(url, params=query_params)
-        observations = response.json()['results']
-        error = False
-        for observation in observations:
+        data = response.json()
+        observations.extend(data['results'])
+        page += 1
+
+    for observation in observations:
+        if not db(db.observations_na.url == observation['uri']).select().first():
             try:
+                # Insert the observation into the database
                 db.observations_na.insert(
                     observed_on=observation['observed_on'],
                     url=observation['uri'],
@@ -444,20 +461,67 @@ def get_observations():
                     longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
                     species_guess=observation['species_guess'],
                     scientific_name=observation['taxon']['name'],
-                    common_name=observation['taxon']['preferred_common_name'] if 'preferred_common_name' in observation[
-                        'taxon'] else None,
+                    common_name=observation['taxon'].get('preferred_common_name'),
                     iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
                     taxon_id=observation['taxon']['id']
                 )
             except:
                 error = True
-        if error:
-            print("Error in API Request")  # Maybe print to a log?
         else:
-            print("Succesful API Request")
-    else:
-        print("Already added those observations")
+            print(f"Observation {observation['uri']} already in database")
 
+    if error:
+        print("Error in API Request")  # Maybe print to a log?
+    else:
+        print(f"Successful API Request for {date}")
+
+
+
+
+# def get_observations(day):
+#     date = day.strftime('%Y-%m-%d')
+#     url = 'https://api.inaturalist.org/v1/observations'
+#     query_params = {
+#         'has[]': 'photos',
+#         'quality_grade': 'research',
+#         'identifications': 'most_agree',
+#         'captive': 'False',
+#         'geoprivacy': 'open',
+#         'taxon_geoprivacy': 'open',
+#         'iconic_taxa[]': 'Plantae',
+#         'place_id': '97394',
+#         'per_page': '200',
+#         'date': date,
+#         'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
+#                   'taxon.preferred_common_name,taxon.iconic_taxon_name',
+#     }
+#     response = requests.get(url, params=query_params)
+#     observations = response.json()['results']
+#     error = False
+#     for observation in observations:
+#         if not db(db.observations_na.url == observation['uri']).select().first():
+#             try:
+#                 db.observations_na.insert(
+#                     observed_on=observation['observed_on'],
+#                     url=observation['uri'],
+#                     image_url=observation['photos'][0]['url'] if observation['photos'] else None,
+#                     latitude=observation['geojson']['coordinates'][1] if observation['geojson'] else None,
+#                     longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
+#                     species_guess=observation['species_guess'],
+#                     scientific_name=observation['taxon']['name'],
+#                     common_name=observation['taxon']['preferred_common_name'] if 'preferred_common_name' in
+#                                                                                     observation['taxon'] else None,
+#                     iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
+#                     taxon_id=observation['taxon']['id']
+#                 )
+#             except:
+#                 error = True
+#         else:
+#             print(f"Observation {observation['uri']} already in database")
+#     if error:
+#         print("Error in API Request")  # Maybe print to a log?
+#     else:
+#         print(f"Successful API Request for {date}")
 
 @action('upload_csv')
 @action.uses('admin.html', db, auth.enforce(), url_signer.verify(), session)
@@ -467,18 +531,12 @@ def upload_csv():
     redirect('admin')
 
 
-@action('drop_observations')
-@action.uses('admin.html', db)
-def drop_observations():
-    drop_old_observations(10)
-    redirect('admin')
-
-
 # This is the function that would be called everyday
 @action('update_database')
 @action.uses('admin.html', db, url_signer.verify())
 def update_database():
-    get_observations()  # Grab todays observations
+    get_observations_for_days(9)
+    # get_observations()  # Grab todays observations
     drop_old_observations(10)  # Remove 10 day old observations
     print("Database Updated")
     redirect(URL('admin', signer=url_signer))
