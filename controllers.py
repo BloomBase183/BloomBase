@@ -70,6 +70,11 @@ def index():
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
         field_notes_url=URL('fnote'),
+        rate_density_url=URL('rate_density'),
+        average_density_url=URL('average_density'),
+        has_rated_density_url=URL('has_rated_density'),
+        delete_observation_rating_url=URL('delete_observation_rating'),
+        update_observation_rating_url=URL('update_observation_rating'),
         drop_interest_url=URL('drop_interest'),
         post_note_url=URL('add_note', signer=url_signer),
         interest_url=URL('interest_list'),
@@ -315,6 +320,7 @@ def fnote():
 
     return dict(field_notes=field_notes)
 
+
 @action('interest_list', method=["GET"])
 @action.uses(db, url_signer, auth)
 def interest_list():
@@ -409,6 +415,86 @@ def delete_contact(contact_id=None):
     assert contact_id is not None
     db(db.interests.id == contact_id).delete()
     redirect(URL('index'))
+
+@action("rate_density", method=["GET", "POST"])
+@action.uses(db, auth, session)
+def rate_density():
+    # Take the users rating of an observation and submit it, should only be called by logged in users
+    #1-10 rating on the observation
+    rating = int(request.params.get('rating'))
+    date = request.params.get('date')
+    #id of the observation
+    id = request.params.get('id')
+    #why the users need to be logged in to rate, it's associated with their email
+    user_email = get_user_email()
+    print(rating, id, user_email)
+    db.observation_densities.insert(observation = id, user_email = user_email, observation_rating = rating, observed_on = date)
+    return dict(auth=auth)
+
+@action("average_density", method=["GET", "POST"])
+@action.uses(db, auth, session)
+def average_density():
+    # Takes the id of an observation and looks in the database to see all the ratings for that observation, then averages them
+    #id of the observation
+    obs_id = int(request.params.get('id'))
+    ratings = (db(db.observation_densities.observation == obs_id).select()).as_list()
+    if len(ratings) > 0:
+        #we have actual ratings to make a review of
+        avg = 0
+        for rating in ratings:
+            avg += int(rating["observation_rating"])
+        average = avg / len(ratings)
+    else:
+        #no ratings, return -1
+        average = -1
+    return dict(average = average)
+
+@action("has_rated_density", method=["GET", "POST"])
+@action.uses(db, auth, session)
+def has_rated_density():
+    # Takes the id of an observation and looks in the database to see all the ratings for that observation, then averages them
+    #id of the observation
+    obs_id = int(request.params.get('id'))
+
+    ratings = (db(db.observation_densities.observation == obs_id).select()).as_list()
+    rated = False
+    email = get_user_email()
+    if len(ratings) > 0:
+        #we have ratings, check if the user is one of them
+        for rating in ratings:
+            #print(rating["user_email"], email )
+            if (email == rating["user_email"]):
+                rated = True
+    #print(rated)
+    return dict(rated = rated)
+
+@action('delete_observation_rating', method=["GET", "POST"])
+@action.uses(db, auth, session)
+def delete_observation_rating():
+    obs_id = int(request.params.get('id'))
+    assert obs_id is not None
+    #deletes an observation rating if the user has done one
+    email = get_user_email()
+    obs_ratings = db(db.observation_densities.observation == obs_id).select()
+    for rating in obs_ratings:
+        if rating["user_email"] == email:
+            print(rating)
+            db(db.observation_densities.id == rating.id).delete()
+    #db(db.observation_densities.id == obs_id & db.observation_densities.user_email == get_user_email()).delete()
+
+@action('update_observation_rating', method=["GET", "POST"])
+@action.uses(db, auth, session)
+def update_observation_rating():
+    email = get_user_email()
+    obs_id = request.params.get('id')
+    rating = int(request.params.get('rating'))
+    observed_on = request.params.get('observed_on')
+    print(observed_on, rating, obs_id , email)
+    db.observation_densities.update_or_insert((db.observation_densities.observation == obs_id) & (db.observation_densities.user_email == email),
+                                              user_email = email,observation = obs_id, observation_rating = rating, observed_on = observed_on)
+
+    #db((db.observation_densities.observation == obs_id)).update(user_email = email,observation = obs_id, obs_ratings = rating, observed_on = observed_on)
+
 
 
 @action('get_observations')
@@ -527,6 +613,7 @@ def observations_by_name():
 
 def drop_old_observations(days):
     db.executesql(f"DELETE FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
+    #db.executesql(f"DELETE FROM observations_densities WHERE DATE(observed_on) <= DATE('now', '-{days} days')")
     # Debug
     # Count the number of rows that match the condition
     # count = db.executesql(f"SELECT COUNT(*) FROM observations_na WHERE DATE(observed_on) <= DATE('now', '-{days} days')")[0][
