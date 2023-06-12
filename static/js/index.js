@@ -13,6 +13,14 @@ let init = (app) =>{
     console.log(obs);
     //Put the popup code in here
     app.vue.clicked_observation = obs;
+    window.obsmapstart = obsmapstart;
+    console.log(obs);
+  
+    //Put the popup code in here
+
+    obsmapstart(obs);
+  
+    console.log(obs)
     //As part of the popup we calculate the average density of the flower
     app.average_density(obs.id);
     app.has_rated_density(obs.id);
