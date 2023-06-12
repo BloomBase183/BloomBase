@@ -317,6 +317,7 @@ let init = (app) =>{
     update_dislikes: app.update_dislikes,
     srchpopup: app.srchpopup,
     desrchpop: app.desrchpop,
+    interpopup: app.interpopup,
   };
 
   app.vue = new Vue({
@@ -460,6 +461,41 @@ async function obsmapstart (obs) {
     map: app.vue.obsmap,
   });
 
+}
+app.interpopup = (intr) => {
+  window.searchmapstart = searchmapstart;
+  let thing = intr;
+  thing.common_name = intr.species_name
+  thing.scientific_name = intr.scientific_name
+  thing.image_url = intr.image
+  app.vue.clicked_search = thing;
+  console.log(intr)
+  searchmapstart();
+  let markers = []
+  axios.get(observations_by_name, {params: {
+    obname: thing.common_name
+  }})
+  .then(function (r)  {
+
+    app.vue.srchobs = []
+    app.vue.srchobs = r.data.observations
+    markers =  app.vue.srchobs.map(obs => {
+      
+      
+      const marker = new google.maps.Marker({
+        position: { lat: obs['latitude'], lng: obs['longitude']},
+        map: app.vue.searchmap,
+      });
+      // 
+      marker.addListener("click", () => {
+
+        app.popup(obs);
+      });
+
+      return marker;
+  })
+  
+});
 }
 app.srchpopup = (obs) =>{
   window.searchmapstart = searchmapstart;
