@@ -77,6 +77,7 @@ def index():
         average_density_url=URL('average_density'),
         has_rated_density_url=URL('has_rated_density'),
         delete_observation_rating_url=URL('delete_observation_rating'),
+        update_observation_rating_url=URL('update_observation_rating'),
     )
 
 @action('search')
@@ -360,6 +361,20 @@ def delete_observation_rating():
             print(rating)
             db(db.observation_densities.id == rating.id).delete()
     #db(db.observation_densities.id == obs_id & db.observation_densities.user_email == get_user_email()).delete()
+
+@action('update_observation_rating', method=["GET", "POST"])
+@action.uses(db, auth, session)
+def update_observation_rating():
+    email = get_user_email()
+    obs_id = request.params.get('id')
+    rating = int(request.params.get('rating'))
+    observed_on = request.params.get('observed_on')
+    print(observed_on, rating, obs_id , email)
+    db.observation_densities.update_or_insert((db.observation_densities.observation == obs_id) & (db.observation_densities.user_email == email),
+                                              user_email = email,observation = obs_id, observation_rating = rating, observed_on = observed_on)
+
+    #db((db.observation_densities.observation == obs_id)).update(user_email = email,observation = obs_id, obs_ratings = rating, observed_on = observed_on)
+
 
 
 @action('get_observations')

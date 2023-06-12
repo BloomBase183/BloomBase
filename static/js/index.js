@@ -143,10 +143,10 @@ let init = (app) =>{
   };
 
   app.edit_observation_rating = function (obs_rating, obs_id, obs_date){
-    axios.post(delete_observation_rating_url, {id: obs_id}).then(response =>{
-      console.log("deleted observation rating")
+    axios.post(update_observation_rating_url, {id: obs_id, rating: obs_rating, observed_on: obs_date}).then(response =>{
+      console.log("updated observation rating")
+      app.average_density(obs_id);
     });
-    app.rate_density(obs_rating, obs_id, obs_date);
   };
 
   app.clear_search = function () {
