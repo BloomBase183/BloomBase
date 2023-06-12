@@ -76,6 +76,8 @@ let init = (app) =>{
     axios.post(post_note_url, {title: noteTitle, noteContent: noteContent, iNat_url: iNat_url, long: long, lat: lat }) // Corrected variable name
       .then(response => {
         app.fnote(obs);
+        document.getElementById("noteTitle").value = ''
+        document.getElementById("noteContent").value = ''
       })
       .catch(error => {
         // Handle any errors
@@ -232,7 +234,7 @@ let init = (app) =>{
     interest_list: app.interest_list,
     drop_interest: app.drop_interest,
     like: app.like,
-    update_likes: app.update_likes,
+    update_likes: app.update_like,
     dislike: app.dislike,
     update_dislikes: app.update_dislikes,
     srchpopup: app.srchpopup,
