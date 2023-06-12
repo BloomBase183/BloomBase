@@ -35,34 +35,27 @@
     </div>
   </div>
 
-  <!--Section for Search bar results -->
-  <div class="column is-7">
-    <div class="box" v-for="result in search_results" @click="srchpopup(result)">
-      <div class="media">
-        <div class="media-left">
-          <figure class="image">
-            <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
-          </figure>
-        </div>
-        <div class="media-content">
-          <p class="title is-5">{{result.common_name}}</p>
-          <p class="title is-6"><i>{{result.scientific_name}}</i></p>
-        </div>
-        <div class="media-right">
-          <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!--Section for Map and Your Interests-->
-
-  <div class="field">
+  <!--Section for Search bar results, interests, and main page map -->
+  <div class="fields">
     <div class="columns">
-      <link rel="stylesheet" type="text/css" href="css/style.css" />
       <div class="column is-7">
-        <div class="box">
+        <div class="box" v-for="result in search_results" @click="srchpopup(result)">
+          <div class="media">
+            <div class="media-left">
+              <figure class="image">
+                <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
+              </figure>
+            </div>
+            <div class="media-content">
+              <p class="title is-5">{{result.common_name}}</p>
+              <p class="title is-6"><i>{{result.scientific_name}}</i></p>
+            </div>
+            <div class="media-right">
+              <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+            </div>
+          </div>
+        </div>
+        <div class="box modal-box">
           <div class="media">
             <title>Simple Map</title>
             <div class="section" id="map"></div>
@@ -89,9 +82,29 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+  
+  
+
+
+  <!--Section for Map and Your Interests
+    <div class="field">
+    <div class="columns">
+      <link rel="stylesheet" type="text/css" href="css/style.css" />
+      <div class="column is-7">
+        <div class="box">
+          <div class="media">
+            <title>Simple Map</title>
+            <div class="section" id="map"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+  -->
+
+  
 
   <!-- search popup -->
   <div v-if="clicked_search" class="modal is-active">
@@ -118,7 +131,7 @@
         </div>
 
         <p class="is-size-3"> Observations</p>
-        <div class="box modal-box" v-for="obs in srchobs">
+        <div class="box " v-for="obs in srchobs">
           <nav class="level is-mobile" @click="popup(obs)">
             <div class="level-left">
               <span class="is-size-5">{{obs.common_name}}</span>
