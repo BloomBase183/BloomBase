@@ -53,7 +53,6 @@ mapkey = rows[0].get('maps')
 @action.uses('index.html', db, session, url_signer, auth)
 def index():
     # Section is for the searchBar component
-
     user_input = request.params.get('user_input')
     if user_input == "" or user_input is None:
         results = db(db.observations_na).select(limitby=(0,10))
@@ -62,6 +61,8 @@ def index():
                 (db.observations_na.scientific_name.contains(user_input, all=True)) |
                 (db.observations_na.common_name.contains(user_input, all=True)) |
                 (db.observations_na.iconic_taxon_name.contains(user_input, all=True))).select(limitby=(0,10))
+    rows = json.load(f)
+    mapkey = rows[0].get('maps')
     return dict(
         observations_url=URL('grab_observations'),
         search_url=URL('search'),
