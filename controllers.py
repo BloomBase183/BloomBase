@@ -503,7 +503,7 @@ def update_observation_rating():
 
 # This is the function that would be called everyday
 @action('update_database')
-@action.uses('admin.html', db, url_signer.verify())
+@action.uses('admin.html', db, auth, url_signer.verify())
 def update_database():
     get_observations_for_days(9)
     # get_observations()  # Grab todays observations
@@ -513,7 +513,7 @@ def update_database():
 
 
 @action('get_observations_for_days')
-@action.uses('admin.html', db, auth.user, url_signer.verify())
+@action.uses('admin.html', db, url_signer.verify())
 def get_observations_for_days(num_days):
     today = datetime.date.today()
     for i in range(num_days):
