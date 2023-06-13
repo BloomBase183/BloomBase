@@ -98,6 +98,13 @@ let init = (app) =>{
       });
   };
 
+  app.fnotepopup = (fnote) => {
+    app.data.currentnote = fnote;
+  }
+  app.close = (fnote) => {
+    app.data.currentnote = null;
+  }
+
   app.show_observation = function (observation) {
     
     this.clicked_observation = observation;
@@ -277,6 +284,7 @@ let init = (app) =>{
     rated_density: false,
     interests: [],
     clicked_search: null,
+    currentnote: null,
     loclist: [],
     imgl: [],
     sldshwind: 0,
@@ -305,6 +313,8 @@ let init = (app) =>{
     update_likes: app.update_likes,
     dislike: app.dislike,
     update_dislikes: app.update_dislikes,
+    fnotepopup: app.fnotepopup,
+    close: app.close,
     srchpopup: app.srchpopup,
     desrchpop: app.desrchpop,
     interpopup: app.interpopup,

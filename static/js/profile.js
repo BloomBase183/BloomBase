@@ -12,7 +12,6 @@ let init = (app) =>{
 
   app.fnotepopup = (fnote) => {
     app.data.currentnote = fnote;
-
   }
   app.close = (fnote) => {
     app.data.currentnote = null;
