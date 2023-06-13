@@ -20,7 +20,7 @@ There are finally two more smaller maps that are in modal components for observa
 
 
 ## Authentication
-
+Authentication is done by associating user accounts solely with an email. When a user seeks to sign in to an account, they are prompted to provide a valid email address. A link for them to follow is then generated, and in actual implementation would be sent to the provided email, allowing them to log in by clicking the provided link. In the current version, however, for the sake of demo purposes the link is instead printed to the console. Once a user follows that link they are signed in, without the need for an additional password.
 
 ## iNaturalist API
 
