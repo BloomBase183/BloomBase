@@ -104,6 +104,7 @@ let init = (app) =>{
   };
 
   app.add_interest = function (result) {
+    app.vue.interests.push(result)
     axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name, scientific_name: result.scientific_name, species_image: result.image_url})
     .then(response => {
       
