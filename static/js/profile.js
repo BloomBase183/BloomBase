@@ -10,7 +10,6 @@ let init = (app) =>{
     return a;
 };
 
-
   app.fnotepopup = (fnote) => {
     app.data.currentnote = fnote;
 
@@ -19,18 +18,52 @@ let init = (app) =>{
     app.data.currentnote = null;
   }
 
-  
+  app.edit_field_note = function (note) {
+    var noteTitle = document.getElementById("noteTitle").value;
+    var noteContent = document.getElementById("noteContent").value;
+    axios.post(edit_field_note_url, {content: noteContent, id: note.id, title: noteTitle})
+      .then(response => {
+        app.get_field_notes()
+      })
+      .catch(error => {
+        console.error('Failed to edit field note!', error);
+      });
+  };
+
+  app.delete_note = function (note_id) {
+    axios.post(delete_field_note_url, {note_id: note_id})
+      .then(response => {
+        app.get_field_notes()
+      })
+      .catch(error => {
+        console.error('Failed to delete field note!', error);
+      });
+  };
+
+  app.get_field_notes = function () {
+    axios.get(getfieldnotes_url) .then(function (r)  {
+      app.data.field_notes = r.data.field_notes
+      app.data.field_notes = app.enumerate(app.data.field_notes)
+    });
+  }
+
 
   app.data ={
     notes: [],
+    field_notes: [],
     currentnote: null,
     obs4note: null,
   };
-  app.methods = {
+
+    app.methods = {
     close: app.close,
     fnotepopup: app.fnotepopup,
+    edit_field_note: app.edit_field_note,
+    get_field_notes: app.get_field_notes,
+    delete_note: app.delete_note,
   };
   app.init = () => {
+    app.get_field_notes()
     window.initMap = initMap;
     // app.vue.get_observations();
     // console.log(app.vue.observations)

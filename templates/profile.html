@@ -1,69 +1,70 @@
 [[extend 'layout.html']]
-
+<div id="vue-target">
 <div class="columns">
-<div class="column is-4">
-<section class="section">
-    [[if current_user:]]
-    <div class="tile is-ancestor">
-        <div class="tile is-5 is-vertical">
-          <span>
-            [[if not isinstance(current_user[0], str):]]
-                <p class="is-size-2">Hi [[=current_user[0]["first_name"]]]!</p>
-            [[else:]]
-                <p class="is-size-2">Please provide your name!</p>
-            [[pass]]
-            <a href="[[=URL('edit_profile', signer=url_signer)]]" class="px-1 is-ghost is-info is-light" >Edit Name</a>
-          </span>
+    <div class="column is-4">
+        <section class="section">
+            [[if current_user:]]
             <div class="tile is-ancestor">
-                <div class="tile is-vertical m-4">
-                    [[for note in field_notes:]]
-                    <div class="tile">
-                        <a href="[[=URL('view_note', note.id, signer=url_signer)]]" class="button is-info is-inverted">
-                          <p class="is-capitalized has-text-black">[[=note.title]]</p>
-                          <p class="px-3">[[=note.created_on]]</p>
-                        </a>
-                        <a href="[[=URL('delete_note', note.id, signer=url_signer)]]" class="button is-ghost"> 
-                          <button class="delete"></button> 
-                        </a>
-                      </div>
+                <div class="tile is-5 is-vertical">
+                  <span>
+                    [[if not isinstance(current_user[0], str):]]
+                        <p class="is-size-2">Hi [[=current_user[0]["first_name"]]]!</p>
+                    [[else:]]
+                        <p class="is-size-2">Please provide your name!</p>
                     [[pass]]
+                    <a href="[[=URL('edit_profile', signer=url_signer)]]" class="px-1 is-ghost is-info is-light" >Edit Name</a>
+                  </span>
+                    <div class="tile is-ancestor">
+                        <div class="tile is-vertical m-4">
+                            <div v-for="note in field_notes" >
+                                <div class="tile">
+                                    <a @click="fnotepopup(note)" class="button is-info is-inverted">
+                                        <p class="is-capitalized has-text-black">{{note.title}}</p>
+                                        <p class="px-3">{{note.created_on}}</p>
+                                    </a>
+                                    <div @click="delete_note(note.id)" class="button is-ghost">
+                                        <button class="delete"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    [[else:]]
-    <div>Profile Not Found</div>
-    [[pass]]
-</section>
-</div>
 
-<div class="column is-8">
+            [[else:]]
+            <div>Profile Not Found</div>
+            [[pass]]
+        </section>
+    </div>
+
+<div class="column is-12">
 <link rel="stylesheet" type="text/css" href="css/style2.css" />
-<div class="section" id="vue-target">
 <div v-if="currentnote" class="modal is-active">
   <div class="modal-background" @click="close"></div>
   <div class="modal-card">
     <header class="modal-card-head">
-      <p class="modal-card-title is-size-3">{{ currentnote.title }}
+      <p class="modal-card-title is-size-3">
+        <textarea class="modal-card-title is-size-3 textarea m-1" id="noteTitle" placeholder="Title your notes!" rows="1">{{ currentnote.title }}</textarea>
       </p>
+        <a class="button is-ghost" @click="edit_field_note(currentnote)">Submit Edit</a>
       <button class="delete" aria-label="close" @click="close"></button>
     </header>
-    <section class="modal-card-body">
+    <section class="modal-card-body" >
       <div class="columns">
-        <div class="column is-6">
-          
-        </div>
-        <div class="column is-6">
-          <div class="box modal-box" style="width: 300px; height: 150px;">
-            <h1 class="is-size-3 is-flex is-align-items-center">Location</h1>
-            <p class="is-size-5 is-flex">{{currentnote.longitude}} {{currentnote.latitude}}</p>
-          </div>
-          <div  class="box modal-box" style="width: 300px; height: 150px;">
-            <h2 class="is-size-3 is-flex is-align-items-center">iNat url</h2>
+        <div class="column is-fullwidth">
+          <div class="box modal-box"  >
+            <div class="content">
+            <textarea class="textarea m-1 is-size-5" id="noteContent" placeholder="Share your notes!" rows="20">{{ currentnote.notes }}</textarea>
+            </div>
+             <i class="fa-thumbs-up">{{currentnote.like_count}}</i>
+             <i class="fa-thumbs-down">{{currentnote.dislike_count}}</i>
           </div>
         </div>
-      </div>      
+      </div>
+        <div class="is-fullwidth">
+          <a>Created On: {{ currentnote.created_on }}</a>
+       </div>
     </section>
       <!-- Include additional information as needed -->
   </div>
@@ -72,12 +73,14 @@
 <div class="section is-large" id="map2"></div>
 </div>
 </div>
-
+</div>
 
 [[block page_scripts]]
 <script>
   let maps_api_key = "[[=XML(MAPS_API_KEY)]]"
   let getfieldnotes_url = "[[=XML(getfieldnotes_url)]]"
+  let delete_field_note_url = "[[=XML(delete_field_note_url)]]"
+  let edit_field_note_url = "[[=XML(edit_field_note_url)]]"
 </script>
 <script type="module" src="js/profile.js"></script>
 <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})

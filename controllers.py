@@ -184,15 +184,22 @@ def view_note(field_note_id=None):
     )
 
 
-@action('delete_note/<field_note_id:int>', method=["GET", "POST"])
-@action.uses('delete_note.html', db, auth.enforce(), url_signer.verify(), session)
-def delete_note(field_note_id=None):
-    assert field_note_id is not None
-    if f is None:
-        # Nothing found to be deleted!
-        redirect(URL('profile', signer=url_signer))
+@action('edit_field_note', method=["GET", "POST"])
+@action.uses(db, auth, url_signer)
+def edit_field_note():
+    field_note_content = request.params.get('content')
+    field_note_id = request.params.get('id')
+    field_note_title = request.params.get('title')
+    db(db.field_notes.id == field_note_id).update(notes=field_note_content, title=field_note_title)
+    return "edited field note"
+
+@action('delete_field_note', method=["POST"])
+@action.uses(db, auth, url_signer)
+def delete_field_note():
+    field_note_id = request.params.get('note_id')
     db(db.field_notes.id == field_note_id).delete()
-    redirect(URL('profile', signer=url_signer))
+    return "deleted field note"
+
 
 @action('add_interest', method=["POST"])
 @action.uses(db, auth, url_signer)
@@ -243,18 +250,17 @@ def profile():
     else:
         user = [session.get("_user_email")]
     if user is None:
-        redirect(URL('index'))
-    # interests = db(db.interests.user_id == auth.current_user.get('id')).select()
-    field_notes = db(db.field_notes.user_email == get_user_email()).select()
+        redirect(URL('index', signer=url_signer))
     return dict(
         current_user=user,
-        field_notes=field_notes,
         # interests are empty for now
         interests=[],
         url_signer=url_signer,
         auth=auth,
         MAPS_API_KEY=mapkey,
         getfieldnotes_url=URL('get_fieldNotes'),
+        delete_field_note_url=URL('delete_field_note'),
+        edit_field_note_url=URL('edit_field_note'),
     )
 
 
