@@ -6,36 +6,26 @@
     [[if current_user:]]
     <div class="tile is-ancestor">
         <div class="tile is-5 is-vertical">
-          <!--<div class="field is-grouped">-->
+          <span>
             [[if not isinstance(current_user[0], str):]]
-                <h1 class="title">Hi [[=current_user[0]["first_name"]]]!</h1>
+                <p class="is-size-2">Hi [[=current_user[0]["first_name"]]]!</p>
             [[else:]]
-                <h1 class="title">Please provide your name!</h1>
+                <p class="is-size-2">Please provide your name!</p>
             [[pass]]
-            <a class="button is-ghost is-info is-light" href="[[=URL('edit_profile', signer=url_signer)]]">Edit Name</a>
-            <!--<a class="button is-success m-2" href="[[=URL('addNote', signer=url_signer)]]">Add Field Note</a>-->
-          <!--</div>-->
-
+            <a href="[[=URL('edit_profile', signer=url_signer)]]" class="px-1 is-ghost is-info is-light" >Edit Name</a>
+          </span>
             <div class="tile is-ancestor">
                 <div class="tile is-vertical m-4">
                     [[for note in field_notes:]]
+                    <div class="tile">
                         <a href="[[=URL('view_note', note.id, signer=url_signer)]]" class="button is-info is-inverted">
-                            <div class="tile is-ancestor">
-                              <div class="tile is-parent">
-                                <article class="tile is-child">
-                                  <p class="subtitle">[[=note.title]]</p>
-                                </article>
-                              </div>
-                              <div class="tile is-parent">
-                                <article class="tile is-child">
-                                  <div class="content">
-                                    <p>[[=note.created_on]]</p>
-                                  </div>
-                                </article>
-                              </div>
-                            </div>
+                          <p class="is-capitalized has-text-black">[[=note.title]]</p>
+                          <p class="px-3">[[=note.created_on]]</p>
                         </a>
-                        <a href="[[=URL('delete_note', note.id, signer=url_signer)]]" class="button is-danger is-inverted fa-trash">Remove Note</a>
+                        <a href="[[=URL('delete_note', note.id, signer=url_signer)]]" class="button is-ghost"> 
+                          <button class="delete"></button> 
+                        </a>
+                      </div>
                     [[pass]]
                 </div>
             </div>
