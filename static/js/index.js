@@ -117,7 +117,7 @@ let init = (app) =>{
 
   // Func drops the given interest in the db
   app.drop_interest = function (interest){
-    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+    axios.post(drop_interest_url, {species_name: interest.species_name, user_email: interest.user_email})
       .then(response => {
         
         app.interest_list();
@@ -250,17 +250,6 @@ let init = (app) =>{
       });
   };
 
-  
-  app.drop_interest = function (interest){
-    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
-      .then(response => {
-        
-        app.interest_list();
-      })
-      .catch(error => {
-        console.error('Failed to drop interest', error)
-      });
-  };
 
   app.clear_search = function () {
     

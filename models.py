@@ -62,7 +62,6 @@ db.define_table(
     Field('interest_category', requires=IS_IN_SET(['Species'])),
     # should be a search bar of species we have available, currently takes whatever
     Field('interest_name'),
-    Field('species_id', 'integer'),
     Field('species_name'),
     Field('scientific_name'),
     Field('image'),

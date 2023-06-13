@@ -196,7 +196,6 @@ def view_note(field_note_id=None):
 @action.uses(db, auth, url_signer)
 def add_interest():
     # Grabbing neccessary info 
-    species_id = request.params.get('species_id')
     species_name = request.params.get('species_name')
     species_image = request.params.get('species_image')
     species_scientific_name = request.params.get('scientific_name')
@@ -217,18 +216,18 @@ def add_interest():
         return 'false'
 
     # Adding interest into users table
-    db.interests.insert(user_email=get_user_email(), species_id=species_id, species_name=species_name, scientific_name=species_scientific_name, image=species_image)
+    db.interests.insert(user_email=get_user_email(), species_name=species_name, scientific_name=species_scientific_name, image=species_image)
     print("added interest")
     return 'true'
 
 @action('drop_interest', method=["POST"])
 @action.uses(db, auth, url_signer)
 def drop_interest():
-    interest_id = request.params.get('interest_id')
+    species_name = request.params.get('species_name')
     interest_email = request.params.get('user_email')
-    assert interest_id is not None
+    assert species_name is not None
     assert interest_email is not None
-    db((db.interests.id == interest_id) & (db.interests.user_email == interest_email)).delete()
+    db((db.interests.species_name == species_name) & (db.interests.user_email == interest_email)).delete()
     print("successfully deleted interest entry")
     return "deleted interest entry"
 
