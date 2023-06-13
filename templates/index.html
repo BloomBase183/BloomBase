@@ -38,30 +38,33 @@
   <!--Section for Search bar results, interests, and main page map -->
   <div class="fields">
     <div class="columns">
-      <div class="column is-7">
-        <div class="box" v-for="result in search_results" @click="srchpopup(result)">
-          <div class="media">
-            <div class="media-left">
-              <figure class="image">
-                <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
-              </figure>
-            </div>
-            <div class="media-content">
-              <p class="title is-5">{{result.common_name}}</p>
-              <p class="title is-6"><i>{{result.scientific_name}}</i></p>
-            </div>
-            <div class="media-right">
-              <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
-            </div>
-          </div>
-        </div>
-        <div class="box modal-box">
+      <div class="column is-7" style="position: relative;">
+        <div class="box modal-box" style="position: absolute; width: 97%;">
           <div class="media">
             <title>Simple Map</title>
-            <div class="section" id="map"></div>
+            <div class="section" id="map" ></div>
+          </div>
+        </div>
+        <div style="position: relative;">
+          <div class="box" v-for="result in search_results" @click="srchpopup(result)" style="margin-bottom: 0;">
+            <div class="media">
+              <div class="media-left">
+                <figure class="image">
+                  <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
+                </figure>
+              </div>
+              <div class="media-content">
+                <p class="title is-5">{{result.common_name}}</p>
+                <p class="title is-6"><i>{{result.scientific_name}}</i></p>
+              </div>
+              <div class="media-right">
+                <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      
       <div class="column is-5">
         <div class="box modal-box">
           <h1 class="is-size-3 has-text-weight-bold">Your Interests</h1>
@@ -86,25 +89,6 @@
   </div>
 </div>
   
-  
-
-
-  <!--Section for Map and Your Interests
-    <div class="field">
-    <div class="columns">
-      <link rel="stylesheet" type="text/css" href="css/style.css" />
-      <div class="column is-7">
-        <div class="box">
-          <div class="media">
-            <title>Simple Map</title>
-            <div class="section" id="map"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  -->
-
   
 
   <!-- search popup -->
