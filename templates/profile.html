@@ -1,8 +1,46 @@
 [[extend 'layout.html']]
+
+<div class="columns">
+<div class="column is-4">
+<section class="section">
+    [[if current_user:]]
+    <div class="tile is-ancestor">
+        <div class="tile is-5 is-vertical">
+          <span>
+            [[if not isinstance(current_user[0], str):]]
+                <p class="is-size-2">Hi [[=current_user[0]["first_name"]]]!</p>
+            [[else:]]
+                <p class="is-size-2">Please provide your name!</p>
+            [[pass]]
+            <a href="[[=URL('edit_profile', signer=url_signer)]]" class="px-1 is-ghost is-info is-light" >Edit Name</a>
+          </span>
+            <div class="tile is-ancestor">
+                <div class="tile is-vertical m-4">
+                    [[for note in field_notes:]]
+                    <div class="tile">
+                        <a href="[[=URL('view_note', note.id, signer=url_signer)]]" class="button is-info is-inverted">
+                          <p class="is-capitalized has-text-black">[[=note.title]]</p>
+                          <p class="px-3">[[=note.created_on]]</p>
+                        </a>
+                        <a href="[[=URL('delete_note', note.id, signer=url_signer)]]" class="button is-ghost"> 
+                          <button class="delete"></button> 
+                        </a>
+                      </div>
+                    [[pass]]
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    [[else:]]
+    <div>Profile Not Found</div>
+    [[pass]]
+</section>
+</div>
+
+<div class="column is-8">
 <link rel="stylesheet" type="text/css" href="css/style2.css" />
 <div class="section" id="vue-target">
-
-
 <div v-if="currentnote" class="modal is-active">
   <div class="modal-background" @click="close"></div>
   <div class="modal-card">
@@ -27,57 +65,14 @@
         </div>
       </div>      
     </section>
-      
       <!-- Include additional information as needed -->
   </div>
 </div>
 <title>Fnote Map</title>
-<div class="section" id="map2"></div>
+<div class="section is-large" id="map2"></div>
 </div>
-<section class="section">
+</div>
 
-    [[if current_user:]]
-    <div class="tile is-ancestor">
-        <div class="tile is-4 is-vertical">
-            [[if not isinstance(current_user[0], str):]]
-                <h1 class="title">Hi [[=current_user[0]["first_name"] ]]</h1>
-            [[else:]]
-                <h1 class="title">Please provide your name!</h1>
-            [[pass]]
-            <a class="button is-warning m-2" href="[[=URL('edit_profile', signer=url_signer)]]">Edit Name</a>
-            <a class="button is-success m-2" href="[[=URL('addNote', signer=url_signer)]]">Add Field Note</a>
-            <div class="tile is-ancestor">
-                <div class="tile is-vertical m-4">
-                    [[for note in field_notes:]]
-                        <a href="[[=URL('view_note', note.id, signer=url_signer)]]" class="button is-outlined is-success m-2 is-fullwidth">
-                            <div class="tile is-ancestor">
-                              <div class="tile is-parent">
-                                <article class="tile is-child">
-                                  <p class="subtitle">[[=note.title]]</p>
-                                </article>
-                              </div>
-                              <div class="tile is-parent">
-                                <article class="tile is-child">
-                                  <div class="content">
-                                    <p>[[=note.created_on]]</p>
-                                  </div>
-                                </article>
-                              </div>
-                            </div>
-                        </a>
-                    [[pass]]
-                </div>
-                <div class="tile is-horizontal">
-
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    [[else:]]
-    <div>Profile Not Found</div>
-    [[pass]]
-</section>
 
 [[block page_scripts]]
 <script>
