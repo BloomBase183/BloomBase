@@ -50,6 +50,7 @@ This field queries the database for the species names that show up in observatio
 This popup is opened on a click event from the interest search field and displays an aggrated view of all observations for that species. The popup displays a smaller map with all observations for that specific species, which can be clicked to open the abovementioned observation popup model. There are no user editable popups in this field, as it displays observations from the api and thus can't be added or removed.
 
 
+
 #### Observation Map
 This map makes up the most loaded map in the site, and contains all of the observations from the iNaturalist API. On init, this map either prompt the user for location data, and selects to a set zoom level outside that point, loading in the observations for that default view.  Due to the high number of observations that need to be displayed as points, this map uses an event listener for the google maps resize event, and on each map resize event, queries the database for points within it's current bounds to display. After this, the map uses the markercluster library to group observations based on location to reduce visual clutter on further zoomed out view.
 
