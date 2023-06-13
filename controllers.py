@@ -512,8 +512,8 @@ def update_database():
     redirect(URL('admin', signer=url_signer))
 
 
-@action('get_observations_for_days')
-@action.uses('admin.html', db, url_signer.verify())
+# @action('get_observations_for_days')
+# @action.uses('admin.html', db, auth, url_signer.verify())
 def get_observations_for_days(num_days):
     today = datetime.date.today()
     for i in range(num_days):
