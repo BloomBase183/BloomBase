@@ -436,23 +436,26 @@ def get_observations(day):
         'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
                   'taxon.preferred_common_name,taxon.iconic_taxon_name',
     }
-    response = requests.get(url, params=query_params)
-    data = response.json()
-    total_pages = data.get('total_pages', 1)  # Default to 1 if total_pages is not present in the response
-    observations = data['results']
+
+    page = 1
+    observations = []
     error = False
-    page = 2  # Start from page 2 since we already fetched the first page
-    while page <= total_pages:
-        query_params['page'] = page
+
+    while True:
+        query_params['page'] = str(page)
         response = requests.get(url, params=query_params)
         data = response.json()
-        observations.extend(data['results'])
+        current_observations = data.get('results', [])
+        observations.extend(current_observations)
+
+        if not current_observations:
+            break
+
         page += 1
 
     for observation in observations:
         if not db(db.observations_na.url == observation['uri']).select().first():
             try:
-                # Insert the observation into the database
                 db.observations_na.insert(
                     observed_on=observation['observed_on'],
                     url=observation['uri'],
@@ -474,6 +477,63 @@ def get_observations(day):
         print("Error in API Request")  # Maybe print to a log?
     else:
         print(f"Successful API Request for {date}")
+
+
+# def get_observations(day):
+#     date = day.strftime('%Y-%m-%d')
+#     url = 'https://api.inaturalist.org/v1/observations'
+#     query_params = {
+#         'has[]': 'photos',
+#         'quality_grade': 'research',
+#         'identifications': 'most_agree',
+#         'captive': 'False',
+#         'geoprivacy': 'open',
+#         'taxon_geoprivacy': 'open',
+#         'iconic_taxa[]': 'Plantae',
+#         'place_id': '97394',
+#         'per_page': '200',
+#         'date': date,
+#         'fields': 'observed_on,uri,photos.geojson.coordinates,photos.url,species_guess,taxon.id,taxon.name,'
+#                   'taxon.preferred_common_name,taxon.iconic_taxon_name',
+#     }
+#     response = requests.get(url, params=query_params)
+#     data = response.json()
+#     total_pages = data.get('total_pages', 1)  # Default to 1 if total_pages is not present in the response
+#     observations = data['results']
+#     error = False
+#     page = 2  # Start from page 2 since we already fetched the first page
+#     while page <= total_pages:
+#         query_params['page'] = page
+#         response = requests.get(url, params=query_params)
+#         data = response.json()
+#         observations.extend(data['results'])
+#         page += 1
+#
+#     for observation in observations:
+#         if not db(db.observations_na.url == observation['uri']).select().first():
+#             try:
+#                 # Insert the observation into the database
+#                 db.observations_na.insert(
+#                     observed_on=observation['observed_on'],
+#                     url=observation['uri'],
+#                     image_url=observation['photos'][0]['url'] if observation['photos'] else None,
+#                     latitude=observation['geojson']['coordinates'][1] if observation['geojson'] else None,
+#                     longitude=observation['geojson']['coordinates'][0] if observation['geojson'] else None,
+#                     species_guess=observation['species_guess'],
+#                     scientific_name=observation['taxon']['name'],
+#                     common_name=observation['taxon'].get('preferred_common_name'),
+#                     iconic_taxon_name=observation['taxon']['iconic_taxon_name'],
+#                     taxon_id=observation['taxon']['id']
+#                 )
+#             except:
+#                 error = True
+#         else:
+#             print(f"Observation {observation['uri']} already in database")
+#
+#     if error:
+#         print("Error in API Request")  # Maybe print to a log?
+#     else:
+#         print(f"Successful API Request for {date}")
 
 
 
