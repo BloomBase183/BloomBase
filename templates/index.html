@@ -35,34 +35,27 @@
     </div>
   </div>
 
-  <!--Section for Search bar results -->
-  <div class="column is-7">
-    <div class="box" v-for="result in search_results" @click="srchpopup(result)">
-      <div class="media">
-        <div class="media-left">
-          <figure class="image">
-            <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
-          </figure>
-        </div>
-        <div class="media-content">
-          <p class="title is-5">{{result.common_name}}</p>
-          <p class="title is-6"><i>{{result.scientific_name}}</i></p>
-        </div>
-        <div class="media-right">
-          <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <!--Section for Map and Your Interests-->
-
-  <div class="field">
+  <!--Section for Search bar results, interests, and main page map -->
+  <div class="fields">
     <div class="columns">
-      <link rel="stylesheet" type="text/css" href="css/style.css" />
       <div class="column is-7">
-        <div class="box">
+        <div class="box" v-for="result in search_results" @click="srchpopup(result)">
+          <div class="media">
+            <div class="media-left">
+              <figure class="image">
+                <img :src="result.image_url" :alt="result.species_guess" style="height: 64px; width: 64px;"/>
+              </figure>
+            </div>
+            <div class="media-content">
+              <p class="title is-5">{{result.common_name}}</p>
+              <p class="title is-6"><i>{{result.scientific_name}}</i></p>
+            </div>
+            <div class="media-right">
+              <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+            </div>
+          </div>
+        </div>
+        <div class="box modal-box">
           <div class="media">
             <title>Simple Map</title>
             <div class="section" id="map"></div>
@@ -72,8 +65,8 @@
       <div class="column is-5">
         <div class="box modal-box">
           <h1 class="is-size-3 has-text-weight-bold">Your Interests</h1>
-          <div v-for="interest in interests" class="box ">
-            <div class="media">
+          <div v-for="interest in interests" class="box">
+            <div class="media" @click="interpopup(interest)">
               <div class="media-left">
                 <figure class="image">
                   <img :src="interest.image" :alt="interest.species_name" style="height: 64px; width: 64px;"/>
@@ -89,9 +82,30 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+  
+  
+
+
+  <!--Section for Map and Your Interests
+    <div class="field">
+    <div class="columns">
+      <link rel="stylesheet" type="text/css" href="css/style.css" />
+      <div class="column is-7">
+        <div class="box">
+          <div class="media">
+            <title>Simple Map</title>
+            <div class="section" id="map"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+  -->
+
+  
 
   <!-- search popup -->
   <div v-if="clicked_search" class="modal is-active">
@@ -118,7 +132,7 @@
         </div>
 
         <p class="is-size-3"> Observations</p>
-        <div class="box modal-box" v-for="obs in srchobs">
+        <div class="box " v-for="obs in srchobs">
           <nav class="level is-mobile" @click="popup(obs)">
             <div class="level-left">
               <span class="is-size-5">{{obs.common_name}}</span>
@@ -130,7 +144,7 @@
               </span>
             </div>
             <div class="box modal-box">
-              <img :src="clicked_search.image_url" :alt="clicked_search.common_name" style="height: 50px; width: 50px;"/>
+              <img :src="obs.image_url" :alt="clicked_search.common_name" style="height: 50px; width: 50px;"/>
             </div>
           </nav>
         </div>
@@ -181,7 +195,7 @@
         <div class="field">
           <textarea class="textarea m-1" id="noteTitle" placeholder="Title your notes!" rows="1"></textarea>
           <textarea class="textarea m-1" id="noteContent" placeholder="Share your notes!" rows="3"></textarea>
-          <button class="button is-fullwidth is-success m-1" @click="post_note(clicked_observation.url, clicked_observation.longitude, clicked_observation.latitude, clicked_observation)" class="button is-success">publish</button>
+          <button class="button is-fullwidth is-success m-1" @click="post_note(clicked_observation.url, clicked_observation.longitude, clicked_observation.latitude, clicked_observation)" class="button is-success">Publish</button>
         </div>
         <div v-if="notes.length <= 0">
           <p class="is-size-5">No current field notes for this observation.</p>
