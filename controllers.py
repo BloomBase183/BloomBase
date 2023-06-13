@@ -400,6 +400,7 @@ def dislike_post():
     # Need to change dislike to += 1 and like to  -= 1
     return 'updated'
 
+
 # Updates the dislike count (sometimes like too) in field notes
 @action('update_dislikes', method=["POST"])
 @action.uses(db, url_signer, auth)
@@ -419,14 +420,6 @@ def update_dislikes():
     return
 
 
-@action('delete_interest/<user_id:int>')
-@action.uses(db, auth.enforce(), url_signer.verify())
-def delete_contact(contact_id=None):
-    assert contact_id is not None
-    db(db.interests.id == contact_id).delete()
-    redirect(URL('index'))
-
-
 @action("rate_density", method=["GET", "POST"])
 @action.uses(db, auth, session)
 def rate_density():
@@ -441,6 +434,7 @@ def rate_density():
     print(rating, id, user_email)
     db.observation_densities.insert(observation = id, user_email = user_email, observation_rating = rating, observed_on = date)
     return dict(auth=auth)
+
 
 @action("average_density", method=["GET", "POST"])
 @action.uses(db, auth, session)
@@ -507,8 +501,19 @@ def update_observation_rating():
     #db((db.observation_densities.observation == obs_id)).update(user_email = email,observation = obs_id, obs_ratings = rating, observed_on = observed_on)
 
 
+# This is the function that would be called everyday
+@action('update_database')
+@action.uses('admin.html', db, url_signer.verify())
+def update_database():
+    get_observations_for_days(9)
+    # get_observations()  # Grab todays observations
+    drop_old_observations(10)  # Remove 10 day old observations
+    print("Database Updated")
+    redirect(URL('admin', signer=url_signer))
+
+
 @action('get_observations_for_days')
-@action.uses('admin.html', db)
+@action.uses('admin.html', db, auth.user, url_signer.verify())
 def get_observations_for_days(num_days):
     today = datetime.date.today()
     for i in range(num_days):
@@ -686,17 +691,6 @@ def upload_csv():
     my_csv_file = os.path.join(APP_FOLDER, "observations.csv")
     insert_csv_to_database(my_csv_file)
     redirect('admin')
-
-
-# This is the function that would be called everyday
-@action('update_database')
-@action.uses('admin.html', db, url_signer.verify())
-def update_database():
-    get_observations_for_days(9)
-    # get_observations()  # Grab todays observations
-    drop_old_observations(10)  # Remove 10 day old observations
-    print("Database Updated")
-    redirect(URL('admin', signer=url_signer))
 
 
 @action('grab_observations')
