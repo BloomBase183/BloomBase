@@ -10,16 +10,27 @@ let init = (app) =>{
     return a;
 };
   app.popup = (obs) =>{
-    console.log(obs);
+    
     //Put the popup code in here
     app.vue.clicked_observation = obs;
-    console.log(obs)
+    //As part of the popup we calculate the average density of the flower
+    window.obsmapstart = obsmapstart;
+  
+
+    //Put the popup code in here
+    obsmapstart(obs);
+  
+    app.average_density(obs.id);
+    app.has_rated_density(obs.id);
+    
     app.fnote(obs);
   }
 
-
   app.depop = () => {
     app.vue.clicked_observation = null;
+    //clear the average density
+    app.vue.observation_average = -1;
+    app.vue.rated_density = false;
     app.vue.notes = [];
   };
 
@@ -29,7 +40,7 @@ let init = (app) =>{
     axios.post(field_note_url, {observation: obs})
       .then(response => {
         app.vue.notes = response.data.field_notes;
-        console.log('matching field notes:', app.vue.notes);
+        
       })
       .catch(error => {
         console.error('Failed to retrieve notes', error);
@@ -42,15 +53,17 @@ let init = (app) =>{
         app.vue.interests = l.data.interests;
       });
   };
+
   app.init = () => {
     window.initMap = initMap;
     // app.vue.get_observations();
-    // console.log(app.vue.observations)
-    // console.log("getobs")
+    // 
+    // 
     app.interest_list();
     initMap();
-    // console.log("done")
+    // 
   };
+
   app.get_observations = function () {
     axios.get(observations_url)
       .then(function (r) {
@@ -76,6 +89,8 @@ let init = (app) =>{
     axios.post(post_note_url, {title: noteTitle, noteContent: noteContent, iNat_url: iNat_url, long: long, lat: lat }) // Corrected variable name
       .then(response => {
         app.fnote(obs);
+        document.getElementById("noteTitle").value = ''
+        document.getElementById("noteContent").value = ''
       })
       .catch(error => {
         // Handle any errors
@@ -84,14 +99,15 @@ let init = (app) =>{
   };
 
   app.show_observation = function (observation) {
-    console.log('clicked on observation:', observation);
+    
     this.clicked_observation = observation;
   };
 
   app.add_interest = function (result) {
+    app.vue.interests.push(result)
     axios.post(add_interest_url, {species_id: result.id, species_name: result.common_name, scientific_name: result.scientific_name, species_image: result.image_url})
     .then(response => {
-      console.log('Interest added successfully');
+      
       app.interest_list();
     })
     .catch(error => {
@@ -102,9 +118,9 @@ let init = (app) =>{
 
   // Func drops the given interest in the db
   app.drop_interest = function (interest){
-    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
+    axios.post(drop_interest_url, {species_name: interest.species_name, user_email: interest.user_email})
       .then(response => {
-        console.log(response);
+        
         app.interest_list();
       })
       .catch(error => {
@@ -122,12 +138,12 @@ let init = (app) =>{
         fnote.like_count += 1;
       } 
       else if (response.data === false) {
-        console.log("already liked")
+        
       } else {
         fnote.like_count += 1;
         fnote.dislike_count -= 1;
-        console.log("like_count " + fnote.like_count);
-        console.log("dislike_count " + fnote.dislike_count);
+        
+        
       }
       
       app.update_like(response.data, fnote)
@@ -137,11 +153,67 @@ let init = (app) =>{
     });
   };
 
+
+  app.rate_density = function (rating, obs_id, obs_date) {
+    //Stores a user rating on a bloom
+    
+    axios.post(rate_density_url, {rating: rating, id: obs_id, date: obs_date}).then(response => {
+      
+      app.average_density(obs_id);
+      app.has_rated_density(obs_id);
+    })
+    .catch(error => {
+      console.error('Failed to rate observation Density', error)
+    });
+  };
+
+  app.average_density = function(obs_id) {
+    //
+    axios.post(average_density_url, {id: obs_id}).then(response => {
+      
+      //set the average to the returned value
+      app.vue.observation_average = response.data.average;
+      return 1
+    })
+    .catch(error => {
+      console.error('Failed to get average', error)
+      //don't set the observation value so it stays at the default -1
+      return -1;
+    });
+  };
+
+  app.has_rated_density = function(obs_id) {
+    
+    axios.post(has_rated_density_url, {id: obs_id}).then(response => {
+      //Sees if the user has rated it previously or not
+      app.vue.rated_density = response.data.rated;
+    })
+    .catch(error => {
+      console.error('Failed to check if the user has rated the observation before', error)
+    });
+  };
+
+
+  app.delete_observation_rating = function (obs_id){
+    axios.post(delete_observation_rating_url, {id: obs_id}).then(response =>{
+      
+      app.average_density(obs_id);
+      app.has_rated_density(obs_id);
+    });
+  };
+
+  app.edit_observation_rating = function (obs_rating, obs_id, obs_date){
+    axios.post(update_observation_rating_url, {id: obs_id, rating: obs_rating, observed_on: obs_date}).then(response =>{
+      
+      app.average_density(obs_id);
+    });
+  };
+
   // updates the like count in field notes
-  app.update_like = function(response, fnote) {
+  app.update_likes = function(response, fnote) {
     axios.post(update_likes_url, {response:response, note: fnote})
       .then(r => {
-        console.log("coo")
+        
         
       });
   };
@@ -156,12 +228,12 @@ let init = (app) =>{
         fnote.dislike_count += 1;
       } 
       else if (response.data === false){
-        console.log("already disliked")
+        
       } else {
         fnote.like_count -= 1;
         fnote.dislike_count += 1;
-        console.log("like_count " + fnote.like_count);
-        console.log("dislike_count " + fnote.dislike_count);
+        
+        
       }
     
       app.update_dislikes(response.data, fnote)
@@ -179,19 +251,9 @@ let init = (app) =>{
       });
   };
 
-  
-  app.drop_interest = function (interest){
-    axios.post(drop_interest_url, {interest_id: interest.id, user_email: interest.user_email})
-      .then(response => {
-        console.log(response);
-        app.interest_list();
-      })
-      .catch(error => {
-        console.error('Failed to drop interest', error)
-      });
-  };
+
   app.clear_search = function () {
-    console.log("clicked")
+    
     this.query = "";
     app.vue.search_results = [];
   };
@@ -209,8 +271,11 @@ let init = (app) =>{
     clicked_observation: null,
     filterinterests: false,
     notes: [],
-    interests: [],
     noteContent: "",
+    observation_average: -1,
+    observation_rating: 0,
+    rated_density: false,
+    interests: [],
     clicked_search: null,
     loclist: [],
     imgl: [],
@@ -229,6 +294,11 @@ let init = (app) =>{
     popup: app.popup,
     depop: app.depop,
     fnote: app.fnote,
+    rate_density: app.rate_density,
+    average_density: app.average_density,
+    has_rated_density: app.has_rated_density,
+    delete_observation_rating: app.delete_observation_rating,
+    edit_observation_rating: app.edit_observation_rating,
     interest_list: app.interest_list,
     drop_interest: app.drop_interest,
     like: app.like,
@@ -237,6 +307,7 @@ let init = (app) =>{
     update_dislikes: app.update_dislikes,
     srchpopup: app.srchpopup,
     desrchpop: app.desrchpop,
+    interpopup: app.interpopup,
   };
 
   app.vue = new Vue({
@@ -248,7 +319,7 @@ let init = (app) =>{
   async function initMap() {
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-    // const { MarkerClusterer} = await google.maps.importLibrary("markerClusterer");
+
     
     const map = new Map(document.getElementById("map"), {
       center: { lat: 37.0902, lng: -100},
@@ -259,7 +330,7 @@ let init = (app) =>{
 
     app.data.map = map
 
-    console.log("mapping")
+    
     infoWindow = new google.maps.InfoWindow();
    {
       // Try HTML5 geolocation.
@@ -286,28 +357,16 @@ let init = (app) =>{
         handleLocationError(false, infoWindow, map.getCenter());
       }
     };
-    console.log("waiting points")
+    
 
-  console.log('got the points')
-  // console.log(app.vue.observations)
+  
+  // 
 
   let markers = [];
   let markers2 = [];
   let empty_markers = [];
-  // let markerCluster = new markerClusterer.MarkerClusterer({markers, map});
-  
-  // markerCluster.addMarkers(markers)
-
-  // markers.splice(0,markers.length)
-  //  markerCluster.clearMarkers();
   let markerCluster = new markerClusterer.MarkerClusterer({ empty_markers, map });
    google.maps.event.addListener(map, "idle", () => {
-    // 
-    // markerCluster.clearMarkers();
-    // markerCluster.clearMarkers();
-    // markers.splice(0,markers.length)
-    console.log("remap")
-    // markerCluster.clearMarkers();
     let bounds = map.getBounds()
     let ne = bounds.getNorthEast();
     let sw = bounds.getSouthWest();
@@ -316,57 +375,38 @@ let init = (app) =>{
       lng_min: sw.lng(), lng_max: ne.lng(), filter: app.data.filterinterests,
     }})
     .then(function (r)  {
-      // markerCluster.clearMarkers();
+
       app.vue.observations = []
       app.vue.observations = r.data.observations
-      // console.log(app.vue.observations)
+
       markers =  app.vue.observations.map(obs => {
         const marker = new google.maps.Marker({
           position: { lat: obs['latitude'], lng: obs['longitude']},
           map: map,
         });
-        // console.log(obs)
+
         marker.addListener("click", () => {
-          // infoWindow.setContent(obs['common_name']);
-          // infoWindow.open(map, marker);
-          // console.log(obs)
-          // console.log('clicked')
+
           app.popup(obs);
         });
-        // markerCluster.addMarkers([marker]);
+
         return marker;
     })
-    // markers.splice(0,markers.length)
-    // markerCluster.addMarkers(markers);
+
 
     markerCluster.clearMarkers();
-    console.log("log")
-    console.log(markerCluster.markers.length)
-    // markerCluster.markers.splice(0,markerCluster.markers.length)
+    
+    
     markerCluster.addMarkers(markers);
-    console.log(app.vue.observations)
-    console.log(markerCluster.markers.length)
+    
+    
 
     
   });
-  
-    // hi = bnds
-    // var ne = bounds.getNorthEast();
-    // var sw = bounds.getSouthWest();
-//     await axios.get(observations_url, {params: {lax: , lam: , lox:, lom:}})
-//     .then(function (r) {
-//       app.vue.observations = r.data.observations
-//  })
-    // console.log(ne)
-    // console.log(sw)
-    console.log(map.getBounds())
 
-    // markerClu.addMarkers(markers);
-
-    // markerCluster.addMarkers(markers);
 
   })
-  // console.log("done obs")
+   
     
   };
   
@@ -381,8 +421,9 @@ let init = (app) =>{
   };
   app.init()
 };
+
 app.interonly = function() {
-  console.log(app.data.filterinterests)
+  
   app.data.map.setZoom(app.data.map.getZoom());
   app.data.filterinterests = !app.data.filterinterests;
 };
@@ -395,14 +436,64 @@ async function searchmapstart () {
     mapId: 'searchmap'
   });
 }
+async function obsmapstart (obs) {
+
+  const { Map } = await google.maps.importLibrary("maps");
+  app.vue.obsmap = new Map(document.getElementById("obsmap"), {
+    center: { lat: 37.0902, lng: -100},
+    zoom: 3,
+    streetViewControl: false,
+    mapId: 'obsmap'
+  });
+  
+  new google.maps.Marker({
+    position: { lat: obs['latitude'], lng: obs['longitude']},
+    map: app.vue.obsmap,
+  });
+
+}
+app.interpopup = (intr) => {
+  window.searchmapstart = searchmapstart;
+  let thing = intr;
+  thing.common_name = intr.species_name
+  thing.scientific_name = intr.scientific_name
+  thing.image_url = intr.image
+  app.vue.clicked_search = thing;
+  searchmapstart();
+  let markers = []
+  axios.get(observations_by_name, {params: {
+    obname: thing.common_name
+  }})
+  .then(function (r)  {
+
+    app.vue.srchobs = []
+    app.vue.srchobs = r.data.observations
+    markers =  app.vue.srchobs.map(obs => {
+      
+      
+      const marker = new google.maps.Marker({
+        position: { lat: obs['latitude'], lng: obs['longitude']},
+        map: app.vue.searchmap,
+      });
+      // 
+      marker.addListener("click", () => {
+
+        app.popup(obs);
+      });
+
+      return marker;
+  })
+  
+});
+}
 app.srchpopup = (obs) =>{
   window.searchmapstart = searchmapstart;
-  console.log(obs);
+  
   //Put the popup code in here
   app.vue.clicked_search = obs;
-  console.log('searchpopping')
+  
   app.vue.sldshwind = 0;
-  console.log(obs.common_name)
+  
   let daname = obs.common_name
   searchmapstart();
   let markers = []
@@ -410,32 +501,39 @@ app.srchpopup = (obs) =>{
     obname: daname
   }})
   .then(function (r)  {
-    // markerCluster.clearMarkers();
+
     app.vue.srchobs = []
     app.vue.srchobs = r.data.observations
-    // console.log(app.vue.observations)
     markers =  app.vue.srchobs.map(obs => {
-      console.log("the obs is")
-      console.log(obs)
+      
+      
       const marker = new google.maps.Marker({
         position: { lat: obs['latitude'], lng: obs['longitude']},
         map: app.vue.searchmap,
       });
-      // console.log(obs)
+      // 
       marker.addListener("click", () => {
-        // infoWindow.setContent(obs['common_name']);
-        // infoWindow.open(map, marker);
-        // console.log(obs)
-        // console.log('clicked')
+
         app.popup(obs);
       });
-      // markerCluster.addMarkers([marker]);
+
       return marker;
   })
   
 });
 
 }
+app.popup = (obs) =>{
+  window.obsmapstart = obsmapstart;
+  
+
+  //Put the popup code in here
+  app.vue.clicked_observation = obs;
+  obsmapstart(obs);
+
+  
+  app.fnote(obs);
+};
 app.desrchpop = () => {
   app.vue.clicked_search = null;
   app.vue.srchobs = [];
