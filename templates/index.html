@@ -166,11 +166,13 @@
         <div class = "columns level"><div class = "level-left"><div><input v-model="observation_rating" class="slider column" step="1" min="0" max="10" value="0" type="range"></div><div class = "is-left tag is-info column l is-2" flex-shrink="0">{{observation_rating}}</div></div></div>
         <!--If the user hasn't rated an observation yet give them the option to, otherwise let them edit/delete a previous observation rating-->
         <div  class = "columns" v-if="rated_density === false">
-          <button class="button is-success m-1 column is-fullwidth is-3" @click="rate_density(observation_rating, clicked_observation.id, clicked_observation.observed_on)" class="button is-success">Rate Density</button></div>
+          <button class="button is-success m-1 column is-fullwidth is-3" @click="rate_density(observation_rating, clicked_observation.id, clicked_observation.observed_on)" class="button is-success">Rate Density</button>
+        </div>
         <!--Gives option to edit and delete rating-->
         <div  class = "columns" v-if="rated_density === true">
           <button class="button is-warning m-1 column is-fullwidth is-3" @click="edit_observation_rating(observation_rating, clicked_observation.id, clicked_observation.observed_on)">Update Rating</button>
-          <button class="button is-danger m-1 column is-fullwidth is-3" @click="delete_observation_rating(clicked_observation.id)">Delete Rating</button></div>
+          <button class="button is-danger m-1 column is-fullwidth is-3" @click="delete_observation_rating(clicked_observation.id)">Delete Rating</button>
+        </div>
           [[else:]]
         <div>Sign In to rate this Observation!</div>
         [[pass]]
