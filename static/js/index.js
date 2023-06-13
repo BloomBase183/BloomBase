@@ -153,7 +153,7 @@ let init = (app) =>{
         
       }
       
-      app.update_like(response.data, fnote)
+      app.update_likes(response.data, fnote)
     })
     .catch(error => {
       console.error('Failed to like field note', error);
