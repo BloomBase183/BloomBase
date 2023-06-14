@@ -8,6 +8,9 @@ The project is created, with a mysql database and a py4web backend. The front en
 
 
 To run the project, run py4web, and navigate to Bloombase/index.
+```sh
+py4web run apps
+```
 
 
 ## Database layout
@@ -28,13 +31,18 @@ There are finally two more smaller maps that are in modal components for observa
 Authentication is done by associating user accounts solely with an email. When a user seeks to sign in to an account, they are prompted to provide a valid email address. A link for them to follow is then generated, and in actual implementation would be sent to the provided email, allowing them to log in by clicking the provided link. In the current version, however, for the sake of demo purposes the link is instead printed to the console. Once a user follows that link they are signed in, without the need for an additional password.
 
 ## iNaturalist API
+[iNaturalist API](https://api.inaturalist.org/v1/docs/)
 
-The observations are pulled from the iNaturalist API, 
+The observations are pulled from the iNaturalist API.
 
 ## UI work
+### UI Design with Figma
 [Figma](https://www.figma.com/)
-### UI Design for Main Page
+#### UI Design for Main Page
 <img src="https://github.com/BloomBase183/BloomBase/assets/70651849/35d2bfc7-d86d-488d-8b50-107cf7d8eb4f" width="650" height="360">
+
+### Bulma Framework
+[Bulma](https://bulma.io/documentation/)
 
 ## Pages used
 ### Main page (index)
