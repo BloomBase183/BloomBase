@@ -14,18 +14,50 @@ py4web run apps
 
 
 ## Database layout
-The project uses 6 tables. One for the observations, field notes, users, liked, interests, and observation densities. Of these tables, all tables except users refer to observations in some way, with likes and densities being dropped when old observations are dropped. However, the interests and field notes tables persist, as those are user data that should persist even as observations exit the database.
+### Project Tables
+
+The project consists of the following six tables:
+
+- Observations: Contains information about observations.
+- Field notes: Stores field notes related to the observations.
+- Users: Contains user data.
+- Liked: Tracks user likes on observations.
+- Interests: Stores user interests.
+- Observation densities: Tracks observation densities.
+
+### Table Relationships and Persistence
+
+- All tables, except for the Users table, are associated with observations in some way.
+- Likes and observation densities are removed when old observations are dropped from the database.
+- The interests and field notes tables persist even if observations are deleted, as they contain user-specific data that should remain intact.
 
 
 ## Maps API usage
-The project uses 4 separate maps instances.
+The project makes use of 4 separate map instances:
 
-The first instance is the main observation map with the marker clusterer. This map displays all observations and thus has a performance constraint for loading all points on a map. Thus, this map utilizes a listener on a map resize event to query only points in the database within the constraints of each resize. Additionally, this map can have a filter to only interests applied, which allows users to filter based on their interests only. This map also prompts for user location on init to set initial bounds.
-An additional map is used to display field notes on a user. This map, since it has a smaller number of points loads all points on initialization, and does not employ a clusterer to reduce usage latency when users are scrolling their field notes. This map also prompts for user location on init to set initial bounds.
+1. Main Observation Map:
+- This map displays all observations.
+- It utilizes a marker clusterer for improved performance.
+- A listener is implemented on the map resize event to query points within the map's constraints.
+- Users can apply filters based on their interests to display relevant observations.
+- User location is prompted on initialization to set initial bounds.
 
+2. Field Notes Map:
+- This map displays field notes associated with a user.
+- It loads all points on initialization due to a smaller number of points.
+- No marker clusterer is used to reduce latency during scrolling.
+- User location is prompted on initialization to set initial bounds.
 
-There are finally two more smaller maps that are in modal components for observations and species. Both these maps do not prompt for user location as they display a much more zoomed out view, and do not utilize re querying for each resize event, since they either only display one, or a small subset of observations. These maps intialize on click events from a modal, since the maps api is not able to initialize a map that is hidden from a user and leave it hidden.
+3. Observations Modal Map:
+- This map is displayed in a modal component for individual observations.
+- It provides a more zoomed-out view and doesn't prompt for user location.
+- Re-querying for each resize event is not necessary as it displays only one observation.
 
+4. Species Modal Map:
+- This map is displayed in a modal component for species information.
+- Similar to the observations modal map, it doesn't prompt for user location.
+- Re-querying for each resize event is not necessary as it displays a small subset of observations.
+Please refer to the relevant code and implementation details for a more comprehensive understanding of the map instances.
 
 ## Authentication
 Authentication is done by associating user accounts solely with an email. When a user seeks to sign in to an account, they are prompted to provide a valid email address. A link for them to follow is then generated, and in actual implementation would be sent to the provided email, allowing them to log in by clicking the provided link. In the current version, however, for the sake of demo purposes the link is instead printed to the console. Once a user follows that link they are signed in, without the need for an additional password.
