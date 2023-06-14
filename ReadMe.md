@@ -1,4 +1,5 @@
 ## Bloombase# Bloombase project implementation
+![Bloombasegif(1) (online-video-cutter com) (1)](https://github.com/BloomBase183/BloomBase/assets/70651849/bd74acb4-d46f-40de-9035-95613b505c83)
 ## Project Goal
 The goal of this project is to create a way for users to interact with and leave notes on observations grabbed from the iNaturalist database of plant observations. The available user features include being able to rate observations based on bloom density, to leave field notes on blooms which can be viewed by other users, and add interests which allow users to filter which points are displayed on the map at that time.
 ## Utilized tools
