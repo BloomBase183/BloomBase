@@ -16,9 +16,12 @@ The project uses 6 tables. One for the observations, field notes, users, liked, 
 
 ## Maps API usage
 The project uses 4 separate maps instances.
+
 The first instance is the main observation map with the marker clusterer. This map displays all observations and thus has a performance constraint for loading all points on a map. Thus, this map utilizes a listener on a map resize event to query only points in the database within the constraints of each resize. Additionally, this map can have a filter to only interests applied, which allows users to filter based on their interests only. This map also prompts for user location on init to set initial bounds.
 An additional map is used to display field notes on a user. This map, since it has a smaller number of points loads all points on initialization, and does not employ a clusterer to reduce usage latency when users are scrolling their field notes. This map also prompts for user location on init to set initial bounds.
-There are finally two more smaller maps that are in modal components for observations and species. Both these maps do not prompt for user location as they display a much more zoomed out view, and do not utilize re querying for each resize event, since they either only display one, or a small subset of observations.
+
+
+There are finally two more smaller maps that are in modal components for observations and species. Both these maps do not prompt for user location as they display a much more zoomed out view, and do not utilize re querying for each resize event, since they either only display one, or a small subset of observations. These maps intialize on click events from a modal, since the maps api is not able to initialize a map that is hidden from a user and leave it hidden.
 
 
 ## Authentication
@@ -26,6 +29,7 @@ Authentication is done by associating user accounts solely with an email. When a
 
 ## iNaturalist API
 
+The observations are pulled from the iNaturalist API, 
 
 ## UI work
 
@@ -72,3 +76,8 @@ Users can additionally change their display names from this page as well.
 ## Admin page
 This page allows site admins (currently everyone on the project), to update observation tables from the API. This page is for testing and loading purposes until an asynchronous script to pull observations is set up.
 
+
+## Current issues
+There is currently not an asynchronous job set up to pull the observations from the api every day, so that is a task that needs to be performed manually by the admin users.
+
+There is currently not a paid mail service set up with the login, thus the login must be accessed from the command line.
