@@ -32,7 +32,9 @@ Authentication is done by associating user accounts solely with an email. When a
 The observations are pulled from the iNaturalist API, 
 
 ## UI work
-
+[Figma](https://www.figma.com/)
+### UI Design for Main Page
+<img src="https://github.com/BloomBase183/BloomBase/assets/70651849/35d2bfc7-d86d-488d-8b50-107cf7d8eb4f" width="650" height="360">
 
 ## Pages used
 ### Main page (index)
