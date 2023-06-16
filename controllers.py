@@ -443,6 +443,7 @@ def average_density():
     #id of the observation
     obs_id = int(request.params.get('id'))
     ratings = (db(db.observation_densities.observation == obs_id).select()).as_list()
+
     if len(ratings) > 0:
         #we have actual ratings to make a review of
         avg = 0

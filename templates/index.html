@@ -58,7 +58,11 @@
                 <p class="title is-6"><i>{{result.scientific_name}}</i></p>
               </div>
               <div class="media-right">
+                [[if auth.session.get("_user_email"):]]
                 <button class="button is-hoverable" @click.stop="add_interest(result)">Add Interest</button>
+                [[else:]] 
+                <div>Sign in to add interests</div>
+                [[pass]]
               </div>
             </div>
           </div>
